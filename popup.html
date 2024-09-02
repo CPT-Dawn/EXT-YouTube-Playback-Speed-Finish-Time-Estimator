@@ -4,16 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YouTube Video Time</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+  <style>
+    /* Styling for the popup to make it larger and more visually appealing */
+    html, body {
+      width: 400px; /* Increase width */
+      height: 300px; /* Increase height */
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #2e2e2e; /* Dark background for better contrast */
+      color: #f1f1f1; /* Light text color */
+      border-radius: 15px; /* Rounded corners */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+      overflow: hidden; /* Prevent content overflow */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px; /* Padding for inner spacing */
+    }
+
+    #time, #remainingTime, #finishTime, #playbackSpeed, #differentSpeeds {
+      font-size: 16px;
+      margin: 5px 0;
+      text-align: center;
+    }
+
+    #differentSpeeds {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Optional: Add responsive design for smaller screens */
+    @media (max-width: 600px) {
+      html, body {
+        width: 300px;
+        height: 250px;
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div id="container">
-    <div id="time" class="info">Current Video Time</div>
-    <div id="remainingTime" class="info">Time Remaining</div>
-    <div id="finishTime" class="info">Video Finish Time</div>
-    <div id="playbackSpeed" class="info">Playback Speed</div>
-    <div id="differentSpeeds" class="info">Finish Times at Different Speeds</div>
-  </div>
+  <div id="time">Current Video Time</div>
+  <div id="remainingTime">Time Remaining</div>
+  <div id="finishTime">Video Finish Time</div>
+  <div id="playbackSpeed">Playback Speed</div>
+  <div id="differentSpeeds">Finish Times at Different Speeds</div>
   <script src="popup.js"></script>
 </body>
 </html>
