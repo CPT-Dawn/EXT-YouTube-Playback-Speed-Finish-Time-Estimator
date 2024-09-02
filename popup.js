@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const playbackSpeedElement = document.getElementById('playbackSpeed');
   const differentSpeedsElement = document.getElementById('differentSpeeds');
 
-  const playbackSpeeds = [0.5, 1, 1.5, 2]; // Different playback speeds to calculate finish times
+  const playbackSpeeds = [1, 1.25, 1.5, 1.75, 2]; // Updated playback speeds
 
   function updateTime() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -25,8 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
           },
         },
         (results) => {
-          if (results && results[0].result !== null) {
+          if (results && results[0].result) {
             const { currentTime, duration, playbackRate } = results[0].result;
+
+            if (isNaN(currentTime) || isNaN(duration) || duration <= 0) {
+              timeElement.textContent = 'Invalid video data!';
+              remainingTimeElement.textContent = '';
+              finishTimeElement.textContent = '';
+              playbackSpeedElement.textContent = '';
+              differentSpeedsElement.innerHTML = '';
+              return;
+            }
+
             const formattedCurrentTime = new Date(currentTime * 1000).toISOString().substr(11, 8);
             const remainingTime = duration - currentTime;
             const formattedRemainingTime = new Date(remainingTime * 1000).toISOString().substr(11, 8);
