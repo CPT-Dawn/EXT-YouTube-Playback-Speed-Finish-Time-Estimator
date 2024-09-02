@@ -1,15 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
   const timeElement = document.getElementById('time');
-  const remainingTimeElement = document.createElement('div');
-  const finishTimeElement = document.createElement('div');
-  const playbackSpeedElement = document.createElement('div');
-  const differentSpeedsElement = document.createElement('div');
-
-  // Add new elements to display additional information
-  timeElement.after(remainingTimeElement);
-  remainingTimeElement.after(finishTimeElement);
-  finishTimeElement.after(playbackSpeedElement);
-  playbackSpeedElement.after(differentSpeedsElement);
+  const remainingTimeElement = document.getElementById('remainingTime');
+  const finishTimeElement = document.getElementById('finishTime');
+  const playbackSpeedElement = document.getElementById('playbackSpeed');
+  const differentSpeedsElement = document.getElementById('differentSpeeds');
 
   const playbackSpeeds = [0.5, 1, 1.5, 2]; // Different playback speeds to calculate finish times
 
