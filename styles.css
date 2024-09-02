@@ -8,20 +8,13 @@ html, body {
     border-radius: 15px; /* Rounded corners */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Shadow for depth */
     overflow: hidden; /* Hide overflow */
-    display: grid;
-    grid-template-rows: repeat(auto-fit, minmax(30px, auto));
-    gap: 10px;
-    padding: 10px;
-  }
-  
-  /* Container for aligning items */
-  #container {
+    width: 500px; /* Fixed width */
+    height: 300px; /* Fixed height */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 100%; /* Ensure full width */
-    height: 100%; /* Ensure full height */
+    padding: 10px;
   }
   
   /* Styling for text elements */
