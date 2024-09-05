@@ -1,24 +1,17 @@
 {
-    "manifest_version": 3,
-    "name": "YouTube Video Time Display",
-    "version": "1.0",
-    "description": "Displays the current time of the YouTube video.",
-    "permissions": ["activeTab", "scripting"],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "icon.jpg",
-        "48": "icon.jpg",
-        "128": "icon.jpg"
-      }
-    },
-    "icons": {
-      "16": "icon.jpg",
-      "48": "icon.jpg",
-      "128": "icon.jpg"
+  "manifest_version": 3,
+  "name": "YouTube Video Info",
+  "version": "1.0",
+  "description": "Displays YouTube video playback info",
+  "permissions": ["scripting", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
     }
-  }
-  
+  ]
+}

@@ -1,0 +1,61 @@
+#custom-yt-video-info {
+    width: 100%;
+    background-color: #222;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+  }
+  
+  .popup-container {
+    width: 100%;
+    padding: 10px;
+  }
+  
+  .time-display {
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+  
+  .progress-bar-container {
+    width: 100%;
+    height: 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+    margin: 20px 0;
+  }
+  
+  .progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: red;
+    border-radius: 5px;
+  }
+  
+  .time-info, .speed-time-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .card {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 10px;
+    flex: 1;
+    margin: 0 5px;
+  }
+  
+  .speed-item {
+    background-color: #333;
+    padding: 5px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+  }
+  
+  .speed-time {
+    font-size: 1.2em;
+    color: white;
+  }
+  

@@ -1,56 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Video Time</title>
-  <style>
-    /* Styling for the popup to make it larger and more visually appealing */
-    html, body {
-      width: 400px; /* Increase width */
-      height: 300px; /* Increase height */
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #2e2e2e; /* Dark background for better contrast */
-      color: #f1f1f1; /* Light text color */
-      border-radius: 15px; /* Rounded corners */
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
-      overflow: hidden; /* Prevent content overflow */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px; /* Padding for inner spacing */
-    }
-
-    #time, #remainingTime, #finishTime, #playbackSpeed, #differentSpeeds {
-      font-size: 16px;
-      margin: 5px 0;
-      text-align: center;
-    }
-
-    #differentSpeeds {
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    /* Optional: Add responsive design for smaller screens */
-    @media (max-width: 600px) {
-      html, body {
-        width: 300px;
-        height: 250px;
-        font-size: 14px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Info</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div id="time">Current Video Time</div>
-  <div id="remainingTime">Time Remaining</div>
-  <div id="finishTime">Video Finish Time</div>
-  <div id="playbackSpeed">Playback Speed</div>
-  <div id="differentSpeeds">Finish Times at Different Speeds</div>
-  <script src="popup.js"></script>
+    <div class="popup-container">
+        <!-- Display current real-time clock -->
+        <div class="time-display" id="time">00:00</div>
+
+        <!-- Video/Playlist Buttons -->
+        <div class="button-container">
+            <button class="active" id="videoButton">Video</button>
+            <button id="playlistButton">Playlist</button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- Time Remaining and Finish Time -->
+        <div class="time-info">
+            <div class="card">
+                <p>Time Remaining:</p>
+                <p id="remainingTime">--:--:--</p>
+            </div>
+            <div class="card">
+                <p>Finishing At:</p>
+                <p id="finishTime">--:--</p>
+            </div>
+        </div>
+
+        <!-- Playback Speeds and Finish Time at each speed -->
+        <div class="speed-time-container">
+            <div class="speed-item" id="speed-1x">
+                <span class="speed-text">1x:</span>
+                <span class="speed-time">--:--</span>
+            </div>
+            <div class="speed-item" id="speed-1-25x">
+                <span class="speed-text">1.25x:</span>
+                <span class="speed-time">--:--</span>
+            </div>
+            <div class="speed-item" id="speed-1-5x">
+                <span class="speed-text">1.5x:</span>
+                <span class="speed-time">--:--</span>
+            </div>
+            <div class="speed-item" id="speed-1-75x">
+                <span class="speed-text">1.75x:</span>
+                <span class="speed-time">--:--</span>
+            </div>
+            <div class="speed-item" id="speed-2x">
+                <span class="speed-text">2x:</span>
+                <span class="speed-time">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
 </body>
 </html>
