@@ -1,64 +1,115 @@
-.popup-container {
-  width: 100%;
+body {
+  font-family: Arial, sans-serif;
   display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 8px (rgb(17, 17, 17));
-  margin-bottom: 16px; /* Space between the UI and recommended videos */
-  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: rgba(240, 240, 240, 0.9); /* Slightly translucent background */
+}
+
+.popup-container {
+  background-color: rgba(34, 34, 34, 0.75); /* Increased translucency */
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 320px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .time-display {
-  font-size: 1.5em;
-  font-weight: bold;
   text-align: center;
-  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.button-container .active {
+  background-color: #fff;
+  color: #222;
+}
+
+.button-container button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  background-color: rgba(68, 68, 68, 0.75); /* Translucent button background */
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.button-container button:hover {
+  opacity: 0.85;
 }
 
 .progress-bar-container {
-  width: 100%;
-  height: 10px;
-  background-color: #e0e0e0;
+  background-color: rgba(68, 68, 68, 0.75); /* Translucent progress bar background */
+  height: 5px;
+  margin-bottom: 15px;
   border-radius: 5px;
   overflow: hidden;
-  margin-bottom: 10px;
 }
 
 .progress-bar {
+  background-color: #ff0000;
+  width: 60%;
   height: 100%;
-  background-color: #76a1ff;
-  width: 0%;
-  transition: width 0.3s ease;
 }
 
 .time-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 1.2em;
-  font-weight: 500;
+  background-color: rgba(68, 68, 68, 0.75); /* Translucent card background */
+  padding: 10px;
+  border-radius: 5px;
+  flex: 1;
+  margin: 0 5px;
+  text-align: center;
+  font-size: 12px;
 }
 
 .speed-time-container {
-  display: flex;
-  justify-content: space-between;
+  background-color: rgba(68, 68, 68, 0.75); /* Translucent container background */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.speed-time-container div {
+  margin-bottom: 8px;
 }
 
 .speed-item {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 1em;
-  width: 19%;
-  padding: 4px;
-  border-radius: 6px;
-  background-color: #f0f0f0;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.speed-item:hover {
+  background-color: rgba(85, 85, 85, 0.75); /* Translucent hover effect */
+}
+
+.speed-item.selected {
+  background-color: rgba(102, 102, 102, 0.75); /* Translucent selected effect */
+  font-weight: bold;
+}
+
+.emoji {
+  font-size: 14px;
 }
