@@ -1,6 +1,6 @@
 #custom-yt-video-info {
     width: 100%;
-    background-color: #222;
+    background-color: #111111;
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 15px;
@@ -40,7 +40,7 @@
   }
   
   .card {
-    background-color: #333;
+    background-color: #272727;
     padding: 10px;
     border-radius: 10px;
     flex: 1;
@@ -48,7 +48,7 @@
   }
   
   .speed-item {
-    background-color: #333;
+    background-color: #272727;
     padding: 5px;
     border-radius: 10px;
     margin-bottom: 5px;
