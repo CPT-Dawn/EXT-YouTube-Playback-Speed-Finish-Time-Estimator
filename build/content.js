@@ -4,17 +4,15 @@ function injectBox() {
   // Create and insert the HTML structure
   const customBoxHtml = `
     <div id="my-custom-box" style="
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 320px;
+      position: relative;
       background-color: #222;
       color: #fff;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
       font-family: Arial, sans-serif;
+      width: 300px;
+      margin: 10px;
     ">
       <div class="time" id="current-time" style="
         text-align: center;
@@ -104,7 +102,6 @@ function injectBox() {
     </div>
   `;
 
-  // Function to insert the custom box into the target location
   function insertCustomBox(targetElement) {
     const customBox = document.createElement('div');
     customBox.innerHTML = customBoxHtml;
@@ -112,7 +109,6 @@ function injectBox() {
     updateTimes(); // Update times initially
   }
 
-  // Function to calculate and update times
   function updateTimes() {
     const currentTimeEl = document.getElementById('current-time');
     const currentVideoTimeEl = document.getElementById('current-time-video');
@@ -158,7 +154,6 @@ function injectBox() {
     });
   }
 
-  // Function to check for the presence of chat, playlist, and recommended sections
   function checkAndInjectBox() {
     const chat = document.querySelector('#chat');
     const playlist = document.querySelector('ytd-playlist-panel-renderer');
@@ -173,7 +168,6 @@ function injectBox() {
     }
   }
 
-  // Check for elements and inject the box
   const checkInterval = setInterval(() => {
     if (document.querySelector('#chat') || document.querySelector('ytd-playlist-panel-renderer') || document.querySelector('#related')) {
       clearInterval(checkInterval);
@@ -181,9 +175,7 @@ function injectBox() {
     }
   }, 1000); // Check every second
 
-  // Update times periodically
   setInterval(updateTimes, 1000); // Update every second
 }
 
-// Run the function to inject the box
 injectBox();
