@@ -1,0 +1,2 @@
+(this["webpackJsonpmy-react-extension"]=this["webpackJsonpmy-react-extension"]||[]).push([[0],{11:function(e,n,t){},12:function(e,n,t){"use strict";t.r(n);var r=t(0),o=t.n(r),a=t(2),c=t.n(a);var l=function(){return o.a.createElement("div",null,o.a.createElement("h1",null,"Hello from My React Extension!"))};t(11);c.a.render(o.a.createElement(l,null),document.getElementById("root"))},3:function(e,n,t){e.exports=t(12)}},[[3,1,2]]]);
+//# sourceMappingURL=main.a0f59493.chunk.js.map
