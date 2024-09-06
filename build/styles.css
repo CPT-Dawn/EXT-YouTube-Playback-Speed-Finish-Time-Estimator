@@ -1,8 +1,12 @@
-body {
-    font-family: Arial, sans-serif;
-  }
-  
-  h1 {
-    color: #333;
-  }
-  
+/* styles.css */
+
+#my-custom-box {
+  position: relative;
+  z-index: 9999;
+  background-color: #ff0000;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+}

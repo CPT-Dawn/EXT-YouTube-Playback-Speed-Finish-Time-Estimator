@@ -1,18 +1,42 @@
 // content.js
 
-// Increase the size of the body content
-document.body.style.fontSize = '20px'; // Adjust the size as needed
+function injectBox() {
+  // Wait until the YouTube page has fully loaded
+  const checkInterval = setInterval(() => {
+    const recommendedSection = document.querySelector('#related');
+    const chat = document.querySelector('#chat');
+    const playlist = document.querySelector('#playlist');
 
-// Print "Hello" to the console
-console.log('Hello');
+    if (recommendedSection) {
+      clearInterval(checkInterval);
 
-// Optionally, add a "Hello" message to the page itself
-const helloElement = document.createElement('div');
-helloElement.textContent = 'Hello';
-helloElement.style.position = 'fixed';
-helloElement.style.top = '10px';
-helloElement.style.left = '10px';
-helloElement.style.backgroundColor = 'white';
-helloElement.style.padding = '5px';
-helloElement.style.border = '1px solid black';
-document.body.appendChild(helloElement);
+      // Create the custom box
+      const customBox = document.createElement('div');
+      customBox.id = 'my-custom-box';
+      customBox.textContent = 'Hello! This is a custom box.';
+      customBox.style.backgroundColor = '#ff0000'; // Adjust background color as needed
+      customBox.style.color = '#ffffff'; // Adjust text color as needed
+      customBox.style.padding = '10px';
+      customBox.style.margin = '10px 0';
+      customBox.style.borderRadius = '5px';
+      customBox.style.fontSize = '16px';
+      customBox.style.fontFamily = 'Arial, sans-serif';
+      customBox.style.position = 'relative';
+      customBox.style.zIndex = '1000'; // Ensure it's above other elements
+
+      // Insert the custom box above the recommended section
+      recommendedSection.parentElement.insertBefore(customBox, recommendedSection);
+    }
+
+    if (chat) {
+      // Optional: Modify or use the chat element if needed
+    }
+
+    if (playlist) {
+      // Optional: Modify or use the playlist element if needed
+    }
+  }, 1000); // Check every second
+}
+
+// Run the function to inject the box
+injectBox();

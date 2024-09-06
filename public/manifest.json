@@ -1,40 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "My React App Extension",
+  "name": "YouTube Custom Box Extension",
   "version": "1.0.0",
-  "description": "A React app as a browser extension",
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
-  },
+  "description": "Inject a custom box above the recommended section on YouTube video pages",
   "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://www.youtube.com/watch*"],
       "js": ["content.js"],
       "css": ["styles.css"]
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["static/js/*.js", "static/css/*.css"],
-      "matches": ["<all_urls>"]
     }
   ]
 }
