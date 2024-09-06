@@ -1,0 +1,2 @@
+(this["webpackJsonpmy-react-extension"]=this["webpackJsonpmy-react-extension"]||[]).push([[0],[function(n,e,t){n.exports=t(1)},function(n,e){}],[[0,1]]]);
+//# sourceMappingURL=main.8b3fb46f.chunk.js.map
