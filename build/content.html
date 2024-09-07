@@ -71,7 +71,6 @@
 
         .progress {
             background-color: #ff0000;
-            width: 60%;
             height: 100%;
         }
 
@@ -126,39 +125,47 @@
 </head>
 
 <body>
-    <div class="player-container">
-        <div class="time">15:15</div>
+    <div class="blank-box-content">
+        <div class="time" id="currentTime">15:15</div>
 
         <div class="buttons">
-            <button class="btn btn-primary">Video</button>
-            <button class="btn btn-secondary">Playlist</button>
+            <button class="btn btn-primary" id="videoButton">Video</button>
+            <button class="btn btn-secondary" id="playlistButton">Playlist</button>
         </div>
 
         <div class="progress-bar">
-            <div class="progress"></div>
+            <div class="progress" id="progressBar"></div>
         </div>
 
         <div class="time-info">
-            <div class="time-box">
+            <div class="time-box" id="remainingTimeBox">
                 <div>Time Remaining:</div>
-                <div>12:13:14</div>
+                <div id="remainingTime">12:13:14</div>
             </div>
-            <div class="time-box">
+            <div class="time-box" id="finishTimeBox">
                 <div>Finishing At:</div>
-                <div>12:18 AM</div>
+                <div id="finishTime">12:18 AM</div>
             </div>
         </div>
 
         <div class="speed-selection">
             <div>Speed Time Selection:</div>
-            <div class="speed-option">1x: 01:30:00</div>
-            <div class="speed-option">1.25x: 01:12:00</div>
-            <div class="speed-option selected">
-                <span>1.5x: 01:00:00</span>
+            <div class="speed-option" id="speed-1x">
+                1x: <span class="speed-time">01:30:00</span>
+            </div>
+            <div class="speed-option" id="speed-1.25x">
+                1.25x: <span class="speed-time">01:12:00</span>
+            </div>
+            <div class="speed-option selected" id="speed-1.5x">
+                <span>1.5x: <span class="speed-time">01:00:00</span></span>
                 <span class="emoji">🏃</span>
             </div>
-            <div class="speed-option">1.75x: 00:50:00</div>
-            <div class="speed-option">2x: 00:45:00</div>
+            <div class="speed-option" id="speed-1.75x">
+                1.75x: <span class="speed-time">00:50:00</span>
+            </div>
+            <div class="speed-option" id="speed-2x">
+                2x: <span class="speed-time">00:45:00</span>
+            </div>
         </div>
     </div>
 </body>
