@@ -10,7 +10,7 @@
       const finishTime = new Date(Date.now() + remainingTime * 1000);
       
       // Update current clock time at the top
-      document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
+      document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
       // Update time remaining
       document.getElementById('remainingTime').textContent = new Date(remainingTime * 1000).toISOString().substr(11, 8);

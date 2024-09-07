@@ -5,58 +5,55 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: #1a1a1a; /* Dark background */
 }
 
-.player-container {
-    background-color: #222;
-    color: #fff;
-    padding: 20px;
+.blank-box-content {
+    background-color: rgba(0, 0, 0, 0.3);
     border-radius: 10px;
-    width: 320px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 2vh;
 }
 
 .time {
-    text-align: center;
+    color: #f1f1f1;
+    background-color: #272727;
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 15px;
+    border-radius: 10px;
+    width: 100px;
+    text-align: center;
+    font-size: 14px;
+    margin: 0 auto;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+    margin-bottom: 1vh;
 }
 
 .buttons {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
+    justify-content: space-between; /* Distribute space equally */
+    align-items: center; /* Center vertically */
+    margin: 0; /* Remove any default margin */
 }
 
 .btn {
-    padding: 10px 20px;
+    flex: 1; /* Make buttons take up equal space */
+    margin: 0 5px; /* Add some space between buttons */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.3s ease;
+    background-color: #272727; /* Dark background for buttons */
+    color: #f1f1f1;
+    text-align: center; /* Center text inside buttons */
+    padding: 10px; /* Add padding for better appearance */
 }
 
-.btn-primary {
-    background-color: #fff;
-    color: #222;
-}
-
-.btn-secondary {
-    background-color: #444;
-    color: #fff;
-}
-
-.btn:hover {
-    opacity: 0.85;
-}
 
 .progress-bar {
-    background-color: #444;
-    height: 5px;
-    margin-bottom: 15px;
+    background-color: #444; /* Darker progress bar background */
+    height: 1vh;
     border-radius: 5px;
     overflow: hidden;
 }
@@ -67,49 +64,45 @@ body {
 }
 
 .time-info {
+    color: #f1f1f1;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 15px;
 }
 
 .time-box {
-    background-color: #444;
-    padding: 10px;
+    color: #f1f1f1;
+    background-color: #272727;
     border-radius: 5px;
     flex: 1;
-    margin: 0 5px;
     text-align: center;
-    font-size: 12px;
+    font-size: 14px; /* Increased font size */
 }
 
 .speed-selection {
-    background-color: #444;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.speed-selection div {
-    margin-bottom: 8px;
+    color: #f1f1f1;
+    background-color: #272727;
+    border-radius: 10px; /* More rounded corners */
 }
 
 .speed-option {
+    color: #f1f1f1;
     display: flex;
     justify-content: space-between;
-    padding: 8px 12px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    background-color: #333; /* Default background color */
 }
 
 .speed-option:hover {
-    background-color: #555;
+    background-color: #444; /* Slightly lighter on hover */
 }
 
 .speed-option.selected {
-    background-color: #666;
+    background-color: #555; /* Slightly different for selected */
     font-weight: bold;
 }
 
 .emoji {
-    font-size: 14px;
+    font-size: 16px; /* Adjusted emoji size */
 }
