@@ -1,4 +1,4 @@
-/* body {
+body {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
@@ -63,7 +63,6 @@
 
 .progress {
     background-color: #ff0000;
-    width: 60%;
     height: 100%;
 }
 
@@ -113,4 +112,4 @@
 
 .emoji {
     font-size: 14px;
-} */
+}
