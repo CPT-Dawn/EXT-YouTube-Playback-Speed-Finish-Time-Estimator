@@ -1,21 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Custom Box Extension",
-  "version": "1.0.0",
-  "description": "Inject a custom box above the recommended section on YouTube video pages",
-  "permissions": [
-    "activeTab"
+  "name": "Your Extension Name",
+  "version": "1.0",
+  "description": "Description of your extension",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.html", "styles.css"],
+      "matches": ["*://www.youtube.com/*"]
+    }
   ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://www.youtube.com/watch*"],
-      "js": ["content.js"],
-      "css": ["styles.css"]
-    }
-  ]
+  }
 }

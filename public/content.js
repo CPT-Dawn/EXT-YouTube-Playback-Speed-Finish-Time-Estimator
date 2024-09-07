@@ -1,5 +1,5 @@
 (function() {
-  // Function to create and insert the blank box
+  // Function to create and insert the blank box with content from external files
   function insertBlankBox() {
       // Select the recommended section
       const recommendedSection = document.querySelector('#related');
@@ -7,12 +7,24 @@
       if (recommendedSection) {
           // Create the blank box
           const blankBox = document.createElement('div');
-          blankBox.style.height = '50px'; // Set the height of the blank box
-          blankBox.style.backgroundColor = '#f0f0f0'; // Set the background color of the blank box
-          blankBox.style.margin = '10px 0'; // Add some margin around the blank box
+          blankBox.className = 'blank-box'; // Assign the CSS class
 
           // Insert the blank box above the recommended section
           recommendedSection.parentNode.insertBefore(blankBox, recommendedSection);
+
+          // Load and insert HTML content into the blank box
+          fetch(chrome.runtime.getURL('content.html'))
+              .then(response => response.text())
+              .then(html => {
+                  blankBox.innerHTML = html;
+              })
+              .catch(error => console.error('Error loading HTML content:', error));
+
+          // Create and add the CSS link element
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = chrome.runtime.getURL('styles.css');
+          document.head.appendChild(link);
       }
   }
 
