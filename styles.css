@@ -1,94 +1,92 @@
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #1a1a1a; /* Dark background */
+    /* Add global body styles here */
 }
 
 .blank-box-content {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
+    /* Styles for the container div */
 }
 
-.time {
-    color: #f1f1f1;
-    background-color: #272727;
-    border-radius: 5px;
-    width: 100px;
-    text-align: center;
-    font-size: 14px; /* Increased font size */
+/* Current time display */
+#currentTime {
+    /* Styles for the current time display */
 }
 
+/* Buttons for video and playlist */
 .buttons {
-    display: flex;
-    justify-content: space-between;
+    /* Styles for the buttons container */
 }
 
-.btn {
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    background-color: #272727; /* Dark background for buttons */
-    color: #f1f1f1;
+#videoButton {
+    /* Styles for the Video button */
 }
 
+#playlistButton {
+    /* Styles for the Playlist button */
+}
+
+/* Progress bar */
 .progress-bar {
-    background-color: #444; /* Darker progress bar background */
-    height: 1vh;
-    border-radius: 5px;
-    overflow: hidden;
+    /* Styles for the progress bar container */
 }
 
-.progress {
-    background-color: #ff0000;
-    height: 100%;
+#progressBar {
+    /* Styles for the actual progress bar */
 }
 
+/* Time information display */
 .time-info {
-    color: #f1f1f1;
-    display: flex;
-    justify-content: space-between;
+    /* Styles for the time info container */
 }
 
 .time-box {
-    color: #f1f1f1;
-    background-color: #272727;
-    border-radius: 5px;
-    flex: 1;
-    text-align: center;
-    font-size: 14px; /* Increased font size */
+    /* Styles for the time box elements */
 }
 
+#remainingTimeBox {
+    /* Styles for the remaining time box */
+}
+
+#remainingTime {
+    /* Styles for the remaining time text */
+}
+
+#finishTimeBox {
+    /* Styles for the finish time box */
+}
+
+#finishTime {
+    /* Styles for the finish time text */
+}
+
+/* Speed selection */
 .speed-selection {
-    color: #f1f1f1;
-    background-color: #272727;
-    border-radius: 10px; /* More rounded corners */
+    /* Styles for the speed selection container */
 }
 
 .speed-option {
-    color: #f1f1f1;
-    display: flex;
-    justify-content: space-between;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    background-color: #333; /* Default background color */
+    /* Styles for each speed option */
 }
 
-.speed-option:hover {
-    background-color: #444; /* Slightly lighter on hover */
+#speed-1x {
+    /* Styles for 1x speed option */
 }
 
-.speed-option.selected {
-    background-color: #555; /* Slightly different for selected */
-    font-weight: bold;
+#speed-1-25x {
+    /* Styles for 1.25x speed option */
 }
 
-.emoji {
-    font-size: 16px; /* Adjusted emoji size */
+#speed-1-5x {
+    /* Styles for 1.5x speed option */
+}
+
+#speed-1-75x {
+    /* Styles for 1.75x speed option */
+}
+
+#speed-2x {
+    /* Styles for 2x speed option */
+}
+
+.speed-time {
+    /* Styles for the time text in speed options */
 }
