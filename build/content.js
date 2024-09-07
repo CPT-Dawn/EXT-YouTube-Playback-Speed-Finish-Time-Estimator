@@ -1,181 +1,32 @@
-// content.js
+(function() {
+  // Function to create and insert the blank box
+  function insertBlankBox() {
+      // Select the recommended section
+      const recommendedSection = document.querySelector('#related');
 
-function injectBox() {
-  // Create and insert the HTML structure
-  const customBoxHtml = `
-    <div id="my-custom-box" style="
-      position: relative;
-      background-color: #222;
-      color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      font-family: Arial, sans-serif;
-      width: 300px;
-      margin: 10px;
-    ">
-      <div class="time" id="current-time" style="
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 15px;
-      ">--:--</div>
+      if (recommendedSection) {
+          // Create the blank box
+          const blankBox = document.createElement('div');
+          blankBox.style.height = '50px'; // Set the height of the blank box
+          blankBox.style.backgroundColor = '#f0f0f0'; // Set the background color of the blank box
+          blankBox.style.margin = '10px 0'; // Add some margin around the blank box
 
-      <div class="buttons" style="
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-      ">
-        <button class="btn btn-primary" style="
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-          background-color: #fff;
-          color: #222;
-        ">Video</button>
-        <button class="btn btn-secondary" style="
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-          background-color: #444;
-          color: #fff;
-        ">Playlist</button>
-      </div>
-
-      <div class="progress-bar" style="
-        background-color: #444;
-        height: 5px;
-        margin-bottom: 15px;
-        border-radius: 5px;
-        overflow: hidden;
-      ">
-        <div class="progress" id="video-progress" style="
-          background-color: #ff0000;
-          width: 0%;
-          height: 100%;
-        "></div>
-      </div>
-
-      <div class="time-info" style="
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-      ">
-        <div class="time-box" id="current-video-time" style="
-          background-color: #444;
-          padding: 10px;
-          border-radius: 5px;
-          flex: 1;
-          margin: 0 5px;
-          text-align: center;
-          font-size: 12px;
-        ">
-          <div>Current Video Time:</div>
-          <div id="current-time-video">--:--</div>
-        </div>
-        <div class="time-box" id="real-finish-time" style="
-          background-color: #444;
-          padding: 10px;
-          border-radius: 5px;
-          flex: 1;
-          margin: 0 5px;
-          text-align: center;
-          font-size: 12px;
-        ">
-          <div>Finishing At:</div>
-          <div id="finish-time">--:--</div>
-        </div>
-      </div>
-
-      <div class="speed-selection" style="
-        background-color: #444;
-        padding: 10px;
-        border-radius: 5px;
-      ">
-        <div>Speed Time Selection:</div>
-        <div id="speed-options"></div>
-      </div>
-    </div>
-  `;
-
-  function insertCustomBox(targetElement) {
-    const customBox = document.createElement('div');
-    customBox.innerHTML = customBoxHtml;
-    targetElement.parentElement.insertBefore(customBox, targetElement);
-    updateTimes(); // Update times initially
+          // Insert the blank box above the recommended section
+          recommendedSection.parentNode.insertBefore(blankBox, recommendedSection);
+      }
   }
 
-  function updateTimes() {
-    const currentTimeEl = document.getElementById('current-time');
-    const currentVideoTimeEl = document.getElementById('current-time-video');
-    const finishTimeEl = document.getElementById('finish-time');
-    const speedOptionsEl = document.getElementById('speed-options');
-    const video = document.querySelector('video');
+  // Wait for the page to load and then insert the blank box
+  window.addEventListener('load', () => {
+      // Check if the element exists on the page
+      const observer = new MutationObserver(() => {
+          if (document.querySelector('#related')) {
+              insertBlankBox();
+              observer.disconnect(); // Stop observing once the box is added
+          }
+      });
 
-    if (!video) {
-      return;
-    }
-
-    // Update current time
-    const currentTime = new Date().toLocaleTimeString();
-    currentTimeEl.textContent = currentTime;
-
-    // Update current video time
-    const currentVideoTime = video.currentTime;
-    const formattedVideoTime = new Date(currentVideoTime * 1000).toISOString().substr(11, 8);
-    currentVideoTimeEl.textContent = formattedVideoTime;
-
-    // Calculate finishing time
-    const duration = video.duration;
-    const remainingTime = duration - currentVideoTime;
-    const finishTime = new Date(Date.now() + remainingTime * 1000).toLocaleTimeString();
-    finishTimeEl.textContent = finishTime;
-
-    // Update video progress bar
-    const progressPercentage = (currentVideoTime / duration) * 100;
-    document.getElementById('video-progress').style.width = `${progressPercentage}%`;
-
-    // Update times for different playback speeds
-    const speeds = [1, 1.25, 1.5, 1.75, 2];
-    speedOptionsEl.innerHTML = ''; // Clear existing options
-
-    speeds.forEach(speed => {
-      const finishTimeAtSpeed = new Date(Date.now() + (remainingTime / speed) * 1000).toLocaleTimeString();
-      const optionDiv = document.createElement('div');
-      optionDiv.classList.add('speed-option');
-      optionDiv.innerHTML = `
-        ${speed}x: ${finishTimeAtSpeed}
-      `;
-      speedOptionsEl.appendChild(optionDiv);
-    });
-  }
-
-  function checkAndInjectBox() {
-    const chat = document.querySelector('#chat');
-    const playlist = document.querySelector('ytd-playlist-panel-renderer');
-    const recommendedSection = document.querySelector('#related');
-
-    if (chat) {
-      insertCustomBox(chat);
-    } else if (playlist) {
-      insertCustomBox(playlist);
-    } else if (recommendedSection) {
-      insertCustomBox(recommendedSection);
-    }
-  }
-
-  const checkInterval = setInterval(() => {
-    if (document.querySelector('#chat') || document.querySelector('ytd-playlist-panel-renderer') || document.querySelector('#related')) {
-      clearInterval(checkInterval);
-      checkAndInjectBox();
-    }
-  }, 1000); // Check every second
-
-  setInterval(updateTimes, 1000); // Update every second
-}
-
-injectBox();
+      // Observe changes to the body of the page
+      observer.observe(document.body, { childList: true, subtree: true });
+  });
+})();
