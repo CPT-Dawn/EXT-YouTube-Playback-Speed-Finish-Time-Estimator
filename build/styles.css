@@ -1,34 +1,116 @@
-.blank-box {
-    height: 400px; /* Set the height of the blank box */
-    background-color: rgba(240, 240, 240, 0.08); /* Set the background color of the blank box with translucency */
-    margin: 10px 0; /* Add some margin around the blank box */
-    border-radius: 12px; /* Set the rounded corners to match YouTube's UI */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Optional: add a subtle shadow for a more polished look */
-    position: relative;
-    overflow: hidden; /* Ensure content doesn't overflow the box */
-    padding: 20px; /* Add padding inside the box */
+/* body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
 }
 
-.blank-box-content {
-    font-family: Arial, sans-serif; /* Set a default font */
-    color: #333; /* Set the text color */
+.player-container {
+    background-color: #222;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 320px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.blank-box-content h2 {
-    font-size: 1.5em; /* Set the size of headings */
-    margin-bottom: 10px; /* Space below the heading */
+.time {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
 }
 
-.blank-box-content p {
-    font-size: 1em; /* Set the size of paragraphs */
-    margin-bottom: 10px; /* Space below paragraphs */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
-.blank-box-content ul {
-    list-style-type: disc; /* Add bullet points for list items */
-    padding-left: 20px; /* Indent list items */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
 }
 
-.blank-box-content li {
-    margin-bottom: 5px; /* Space between list items */
+.btn-primary {
+    background-color: #fff;
+    color: #222;
 }
+
+.btn-secondary {
+    background-color: #444;
+    color: #fff;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.progress-bar {
+    background-color: #444;
+    height: 5px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress {
+    background-color: #ff0000;
+    width: 60%;
+    height: 100%;
+}
+
+.time-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.time-box {
+    background-color: #444;
+    padding: 10px;
+    border-radius: 5px;
+    flex: 1;
+    margin: 0 5px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.speed-selection {
+    background-color: #444;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.speed-selection div {
+    margin-bottom: 8px;
+}
+
+.speed-option {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.speed-option:hover {
+    background-color: #555;
+}
+
+.speed-option.selected {
+    background-color: #666;
+    font-weight: bold;
+}
+
+.emoji {
+    font-size: 14px;
+} */

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Your Extension Name",
+  "name": "Video Player Interface",
   "version": "1.0",
-  "description": "Description of your extension",
+  "description": "Adds an interface for controlling video playback.",
   "permissions": ["activeTab"],
   "content_scripts": [
     {
@@ -14,7 +14,7 @@
   "web_accessible_resources": [
     {
       "resources": ["content.html", "styles.css"],
-      "matches": ["*://www.youtube.com/*"]
+      "matches": ["*://*.youtube.com/*"]
     }
   ],
   "icons": {
