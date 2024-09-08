@@ -20,7 +20,7 @@
     if (video) {
       const currentTime = video.currentTime;
       const duration = video.duration;
-      const remainingTime = duration - currentTime;
+      const remainingTime = (duration - currentTime) / video.playbackRate; // Adjust remaining time by playback speed
       const finishTime = new Date(Date.now() + remainingTime * 1000);
 
       // Update current clock time at the top
@@ -30,13 +30,11 @@
       document.getElementById("remainingTime").textContent = formatTime(remainingTime);
 
       // Update finishing time based on current playback speed
-      const currentPlaybackRate = video.playbackRate;
-      const adjustedFinishTime = new Date(Date.now() + (remainingTime / currentPlaybackRate) * 1000);
-      document.getElementById("finishTime").textContent = timeFormatter.format(adjustedFinishTime);
+      document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
 
       // Update playback speeds and their corresponding finish times
       playbackSpeeds.forEach((speed) => {
-        const speedFinishTime = timeFormatter.format(new Date(Date.now() + (remainingTime / speed) * 1000));
+        const speedFinishTime = timeFormatter.format(new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000));
         const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
 
         if (speedElement) {
@@ -48,7 +46,7 @@
       playbackSpeeds.forEach((speed) => {
         const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
         if (speedOption) {
-          speedOption.classList.toggle("selected-speed", speed === currentPlaybackRate);
+          speedOption.classList.toggle("selected-speed", speed === video.playbackRate);
         }
       });
 
