@@ -1,96 +1,96 @@
 body {
     font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #121212; /* Dark background for better contrast */
 }
 
 .blank-box-content {
     display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: center; /* Center horizontally */
-    border-radius: 10px; /* Rounded edges */
-    background-color: rgba(15, 15, 15, 0.8); /* Translucent background */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
-    padding-left: 20px; /* Optional: add padding inside the box */
-    padding-right: 20px; /* Optional: add padding inside the box */
-    padding-top: 10px; /* Optional: add padding inside the box */
-    padding-bottom: 10px; /* Optional: add padding inside the box */
-    gap: 16px; /* Space between items */
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    background-color: rgba(15, 15, 15, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    gap: 16px;
+    max-width: 600px; /* Constrain width for better readability */
+    margin: 20px auto; /* Center box horizontally with margin */
 }
 
 #currentTime {
-    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
-    color: #ffffff; /* Text color */
-    padding: 8px 16px; /* Adjust padding as needed */
-    border-radius: 4px; /* Rounded corners */
-    font-size: 18px; /* Slightly larger font size */
-    display: inline-block; /* Ensure it's inline with other elements */
-    text-align: center; /* Center text inside the box */
+    background-color: rgba(39, 39, 39, 0.8);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 18px;
+    display: inline-block;
+    text-align: center;
 }
 
 .progress-bar {
-    width: 100%; /* Full width */
-    height: 8px; /* Height of the progress bar */
-    background-color: #d0d0d0; /* Light gray background */
-    border-radius: 4px; /* Rounded corners for the container */
-    overflow: hidden; /* Ensure content doesn't overflow */
+    width: 100%;
+    height: 8px;
+    background-color: #d0d0d0;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 #progressBar {
-    height: 100%; /* Fill the container height */
-    background-color: #ff0000; /* Red color for the progress bar */
-    width: 50%; /* Example width, dynamically update this in JS */
-    border-radius: 4px; /* Rounded corners for the progress */
+    height: 100%;
+    background-color: #ff0000;
+    border-radius: 4px;
+    transition: width 0.1s; /* Smooth transition for progress bar updates */
 }
 
-/* Time information display */
 .time-info {
     display: flex;
-    flex-direction: row; /* Arrange time boxes side by side */
-    gap: 10px; /* Space between time boxes */
-    width: 100%; /* Full width to match the progress bar */
-    justify-content: space-around; /* Distribute space around items */
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    justify-content: space-around;
 }
 
 .time-box {
-    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
-    color: #ffffff; /* Text color */
-    padding: 10px 20px; /* Padding inside time boxes */
-    border-radius: 4px; /* Rounded corners */
-    text-align: center; /* Center text inside boxes */
-    flex: 1; /* Ensure boxes take up equal space */
-    max-width: calc(50% - 5px); /* Prevent overflow considering the gap */
-    font-size: 14px; /* Font size */
+    background-color: rgba(39, 39, 39, 0.8);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-align: center;
+    flex: 1;
+    max-width: 45%;
+    font-size: 14px;
 }
 
 .speed-selection {
-    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
-    color: #ffffff; /* Text color */
-    padding: 16px; /* Increase padding for better spacing */
-    border-radius: 8px; /* Slightly more rounded corners */
-    font-size: 18px; /* Slightly larger font size */
-    display: block; /* Make the container block-level to occupy full width */
-    width: 100%; /* Make the container occupy full width of its parent */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    background-color: rgba(39, 39, 39, 0.8);
+    color: #ffffff;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .speed-selection > div:first-of-type {
-    margin-bottom: 12px; /* Add space below the title */
-    font-weight: bold; /* Make the title bold */
+    margin-bottom: 12px;
+    font-weight: bold;
 }
 
 .speed-option {
-    margin-bottom: 8px; /* Add space between each speed option */
-    display: flex; /* Use flexbox for alignment */
-    justify-content: space-between; /* Space out text and time */
-    align-items: center; /* Align items vertically */
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .speed-time {
-    font-family: monospace; /* Use monospace font for time display */
-    background-color: #333; /* Slightly darker background for the time */
-    padding: 2px 4px; /* Add padding around the time */
-    border-radius: 4px; /* Rounded corners for the time background */
+    font-family: monospace;
+    background-color: #333;
+    padding: 2px 4px;
+    border-radius: 4px;
 }
 
 .selected-speed {
-    border: 2px solid #ff0000; /* Red border for selected speed */
+    border: 2px solid #ff0000;
 }
