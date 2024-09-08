@@ -43,6 +43,19 @@
         }
       });
 
+      // Highlight the currently selected playback speed
+      const currentPlaybackRate = video.playbackRate;
+      playbackSpeeds.forEach((speed) => {
+        const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
+        if (speedOption) {
+          if (speed === currentPlaybackRate) {
+            speedOption.classList.add("selected-speed");
+          } else {
+            speedOption.classList.remove("selected-speed");
+          }
+        }
+      });
+
       // Update progress bar
       const progressPercent = (currentTime / duration) * 100;
       const progressBar = document.getElementById("progressBar");

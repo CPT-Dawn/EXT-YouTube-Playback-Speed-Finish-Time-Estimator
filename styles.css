@@ -6,13 +6,16 @@ body {
     display: flex;
     flex-direction: column; /* Stack elements vertically */
     align-items: center; /* Center horizontally */
-    border: 2px solid rgba(0, 0, 0, 1); /* Black border with 50% opacity */
     border-radius: 10px; /* Rounded edges */
-    background-color: rgba(255, 255, 255, 0.0); /* Fully transparent inside */
+    background-color: rgba(15, 15, 15, 0.8); /* Translucent background */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
-    padding: 10px; /* Optional: add padding inside the box */
-    gap: 10px; /* Space between items */
+    padding-left: 20px; /* Optional: add padding inside the box */
+    padding-right: 20px; /* Optional: add padding inside the box */
+    padding-top: 10px; /* Optional: add padding inside the box */
+    padding-bottom: 10px; /* Optional: add padding inside the box */
+    gap: 16px; /* Space between items */
 }
+
 
 #currentTime {
     background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
@@ -24,12 +27,11 @@ body {
     text-align: center; /* Center text inside the box */
 }
 
-/* Progress bar */
 .progress-bar {
     width: 100%; /* Full width */
-    height: 4px; /* Height of the progress bar */
+    height: 8px; /* Height of the progress bar */
     background-color: #d0d0d0; /* Light gray background */
-    border-radius: 2px; /* Rounded corners */
+    border-radius: 4px; /* Rounded corners for the container */
     overflow: hidden; /* Ensure content doesn't overflow */
 }
 
@@ -37,7 +39,9 @@ body {
     height: 100%; /* Fill the container height */
     background-color: #ff0000; /* Red color for the progress bar */
     width: 50%; /* Example width, dynamically update this in JS */
+    border-radius: 4px; /* Rounded corners for the progress */
 }
+
 
 /* Time information display */
 .time-info {
@@ -68,16 +72,46 @@ body {
     font-size: 16px; /* Slightly larger font size for time values */
 }
 
-
-
 /* Speed selection */
 .speed-selection {
-    /* Styles for the speed selection container */
+    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
+    color: #ffffff; /* Text color */
+    padding: 16px; /* Increase padding for better spacing */
+    border-radius: 8px; /* Slightly more rounded corners */
+    font-size: 18px; /* Slightly larger font size */
+    display: block; /* Make the container block-level to occupy full width */
+    width: 100%; /* Make the container occupy full width of its parent */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.speed-selection > div:first-of-type {
+    margin-bottom: 12px; /* Add space below the title */
+    font-weight: bold; /* Make the title bold */
 }
 
 .speed-option {
-    /* Styles for each speed option */
+    margin-left: 30px;
+    margin-bottom: 8px; /* Add space between each speed option */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: space-between; /* Space out text and time */
+    align-items: center; /* Align items vertically */
 }
+
+.speed-time {
+    font-family: monospace; /* Use monospace font for time display */
+    background-color: #333; /* Slightly darker background for the time */
+    padding: 2px 4px; /* Add padding around the time */
+    border-radius: 4px; /* Rounded corners for the time background */
+}
+
+.selected-speed {
+    border: 2px solid #ff0000; /* Red border for the selected option */
+    padding: 2px 6px; /* Add padding around the text */
+    border-radius: 4px; /* Rounded corners for the border */
+    background-color: #f0f0f0; /* Light background to distinguish selected option */
+    color: #000000; /* Text color for visibility */
+}
+
 
 #speed-1x {
     /* Styles for 1x speed option */
