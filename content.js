@@ -1,7 +1,8 @@
 (function () {
+  let video;
+
   function updateUI() {
     const playbackSpeeds = [1, 1.25, 1.5, 1.75, 2];
-    const video = document.querySelector("video");
 
     if (video) {
       const currentTime = video.currentTime;
@@ -69,6 +70,7 @@
   function initializeUI() {
     // Ensure the UI is initialized
     insertBlankBox();
+    video = document.querySelector("video");
     setInterval(updateUI, 1000); // Update UI every second
   }
 
@@ -89,6 +91,17 @@
           .then((response) => response.text())
           .then((html) => {
             blankBox.innerHTML = html;
+
+            // Add click event listeners to speed options
+            const speedOptions = document.querySelectorAll('.speed-option');
+            speedOptions.forEach(option => {
+              option.addEventListener('click', () => {
+                const speed = parseFloat(option.id.replace('speed-', '').replace('x', '').replace('-', '.'));
+                if (!isNaN(speed) && video) {
+                  video.playbackRate = speed;
+                }
+              });
+            });
           })
           .catch((error) => console.error("Error loading HTML content:", error));
 

@@ -16,7 +16,6 @@ body {
     gap: 16px; /* Space between items */
 }
 
-
 #currentTime {
     background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
     color: #ffffff; /* Text color */
@@ -42,7 +41,6 @@ body {
     border-radius: 4px; /* Rounded corners for the progress */
 }
 
-
 /* Time information display */
 .time-info {
     display: flex;
@@ -64,75 +62,27 @@ body {
 }
 
 #remainingTimeBox, #finishTimeBox {
-    /* No additional styles are necessary unless specific to one box */
+    /* No additional styles are necessary unless specific to each */
 }
 
-#remainingTime, #finishTime {
-    font-weight: bold; /* Bold text for the time values */
-    font-size: 16px; /* Slightly larger font size for time values */
-}
-
-/* Speed selection */
 .speed-selection {
-    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
-    color: #ffffff; /* Text color */
-    padding: 16px; /* Increase padding for better spacing */
-    border-radius: 8px; /* Slightly more rounded corners */
-    font-size: 18px; /* Slightly larger font size */
-    display: block; /* Make the container block-level to occupy full width */
-    width: 100%; /* Make the container occupy full width of its parent */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-.speed-selection > div:first-of-type {
-    margin-bottom: 12px; /* Add space below the title */
-    font-weight: bold; /* Make the title bold */
+    display: flex;
+    flex-direction: column; /* Stack speed options vertically */
+    gap: 8px; /* Space between speed options */
 }
 
 .speed-option {
-    margin-left: 30px;
-    margin-bottom: 8px; /* Add space between each speed option */
-    display: flex; /* Use flexbox for alignment */
-    justify-content: space-between; /* Space out text and time */
-    align-items: center; /* Align items vertically */
+    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
+    color: #ffffff; /* Text color */
+    padding: 10px 20px; /* Padding inside speed options */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
 }
 
-.speed-time {
-    font-family: monospace; /* Use monospace font for time display */
-    background-color: #333; /* Slightly darker background for the time */
-    padding: 2px 4px; /* Add padding around the time */
-    border-radius: 4px; /* Rounded corners for the time background */
+.speed-option:hover {
+    background-color: rgba(60, 60, 60, 0.9); /* Darker background on hover */
 }
 
 .selected-speed {
-    border: 2px solid #ff0000; /* Red border for the selected option */
-    padding: 2px 6px; /* Add padding around the text */
-    border-radius: 4px; /* Rounded corners for the border */
-    background-color: #f0f0f0; /* Light background to distinguish selected option */
-    color: #000000; /* Text color for visibility */
-}
-
-
-#speed-1x {
-    /* Styles for 1x speed option */
-}
-
-#speed-1-25x {
-    /* Styles for 1.25x speed option */
-}
-
-#speed-1-5x {
-    /* Styles for 1.5x speed option */
-}
-
-#speed-1-75x {
-    /* Styles for 1.75x speed option */
-}
-
-#speed-2x {
-    /* Styles for 2x speed option */
-}
-
-.speed-time {
-    /* Styles for the time text in speed options */
+    border: 2px solid #ff0000; /* Red border for selected speed */
 }
