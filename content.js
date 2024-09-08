@@ -16,25 +16,40 @@
         {
           hour: "2-digit",
           minute: "2-digit",
+          second: "2-digit",
           hour12: false,
         }
       );
 
       // Update time remaining
-      document.getElementById("remainingTime").textContent = new Date(
-        remainingTime * 1000
-      )
+      document.getElementById("remainingTime").textContent = new Date(remainingTime * 1000)
         .toISOString()
         .substr(11, 8);
 
       // Update finishing time
-      document.getElementById("finishTime").textContent = finishTime.toLocaleTimeString();
+      document.getElementById("finishTime").textContent = finishTime.toLocaleTimeString(
+        "en-US",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }
+      );
 
       // Update playback speeds and their corresponding finish times
       playbackSpeeds.forEach((speed) => {
         const speedFinishTime = new Date(
           Date.now() + (remainingTime / speed) * 1000
-        ).toLocaleTimeString();
+        ).toLocaleTimeString(
+          "en-US",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          }
+        );
         const speedElement = document.querySelector(
           `#speed-${speed.toString().replace(".", "-") + "x"} .speed-time`
         );
