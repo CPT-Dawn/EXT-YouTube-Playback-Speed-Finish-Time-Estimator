@@ -1,62 +1,74 @@
 body {
-    /* Add global body styles here */
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
 .blank-box-content {
-    /* Styles for the container div */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center horizontally */
+    border: 2px solid rgba(0, 0, 0, 0.5); /* Black border with 50% opacity */
+    border-radius: 10px; /* Rounded edges */
+    background-color: rgba(255, 255, 255, 0.0); /* Fully transparent inside */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+    padding: 10px; /* Optional: add padding inside the box */
+    gap: 10px; /* Space between items */
 }
 
-/* Current time display */
 #currentTime {
-    /* Styles for the current time display */
-}
-
-/* Buttons for video and playlist */
-.buttons {
-    /* Styles for the buttons container */
-}
-
-#videoButton {
-    /* Styles for the Video button */
-}
-
-#playlistButton {
-    /* Styles for the Playlist button */
+    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
+    color: #ffffff; /* Text color */
+    padding: 8px 16px; /* Adjust padding as needed */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 18px; /* Slightly larger font size */
+    display: inline-block; /* Ensure it's inline with other elements */
+    text-align: center; /* Center text inside the box */
 }
 
 /* Progress bar */
 .progress-bar {
-    /* Styles for the progress bar container */
+    width: 100%; /* Full width */
+    height: 4px; /* Height of the progress bar */
+    background-color: #d0d0d0; /* Light gray background */
+    border-radius: 2px; /* Rounded corners */
+    overflow: hidden; /* Ensure content doesn't overflow */
 }
 
 #progressBar {
-    /* Styles for the actual progress bar */
+    height: 100%; /* Fill the container height */
+    background-color: #ff0000; /* Red color for the progress bar */
+    width: 50%; /* Example width, dynamically update this in JS */
 }
 
 /* Time information display */
 .time-info {
-    /* Styles for the time info container */
+    display: flex;
+    flex-direction: row; /* Arrange time boxes side by side */
+    gap: 10px; /* Space between time boxes */
+    width: 100%; /* Full width to match the progress bar */
+    justify-content: space-around; /* Distribute space around items */
 }
 
 .time-box {
-    /* Styles for the time box elements */
+    background-color: rgba(39, 39, 39, 0.8); /* Semi-transparent background color */
+    color: #ffffff; /* Text color */
+    padding: 10px 20px; /* Padding inside time boxes */
+    border-radius: 4px; /* Rounded corners */
+    text-align: center; /* Center text inside boxes */
+    flex: 1; /* Ensure boxes take up equal space */
+    max-width: calc(50% - 5px); /* Prevent overflow considering the gap */
+    font-size: 14px; /* Font size */
 }
 
-#remainingTimeBox {
-    /* Styles for the remaining time box */
+#remainingTimeBox, #finishTimeBox {
+    /* No additional styles are necessary unless specific to one box */
 }
 
-#remainingTime {
-    /* Styles for the remaining time text */
+#remainingTime, #finishTime {
+    font-weight: bold; /* Bold text for the time values */
+    font-size: 16px; /* Slightly larger font size for time values */
 }
 
-#finishTimeBox {
-    /* Styles for the finish time box */
-}
 
-#finishTime {
-    /* Styles for the finish time text */
-}
 
 /* Speed selection */
 .speed-selection {
