@@ -12,10 +12,7 @@ body {
     border-radius: 10px;
     background-color: rgba(17, 17, 17, 0.11);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    padding-left: 18px;
-    padding-right: 18px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px 18px;
     gap: 18px;
     max-width: 600px;
 }
@@ -70,8 +67,8 @@ body {
 }
 
 #remainingTime, #finishTime {
-    margin-top: 2px;
-    font-size: 14px;
+    margin-top: 3px;
+    font-size: 15px;
     color: rgb(241, 241, 241);
     font-weight: bold;
 }
@@ -93,12 +90,12 @@ body {
 
 .speed-option {
     color: rgb(241, 241, 241);
-    font-size: 14px;
-    margin-bottom: 6px;
+    font-size: 15px;
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 20px;
+    padding: 5px 20px;
     border-radius: 10px;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -110,6 +107,7 @@ body {
 
 .speed-time {
     background-color: #333;
+    padding: 2px 4px;
     border-radius: 4px;
 }
 
