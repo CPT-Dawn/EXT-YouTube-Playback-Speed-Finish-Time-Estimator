@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Video Player Interface",
+  "name": "Playback Speed Finish Time Calculator for YouTube™",
   "version": "1.0",
-  "description": "Adds an interface for controlling video playback.",
+  "description": "Shows real-time finish times for different YouTube playback speeds, letting users quickly view and choose their preferred speed",
   "permissions": ["activeTab"],
   "content_scripts": [
     {
