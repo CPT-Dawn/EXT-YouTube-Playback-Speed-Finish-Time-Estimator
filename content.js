@@ -61,34 +61,38 @@
 
   // Inject the HTML and CSS into the page
   function insertBlankBox() {
-    const recommendedSection = document.querySelector("#related");
+    const referenceElement = document.querySelector(".style-scope.yt-chip-cloud-renderer");
 
-    if (recommendedSection) {
-      const blankBox = document.createElement("div");
-      blankBox.className = "blank-box";
+    if (referenceElement) {
+      // Check if the blank box already exists to prevent duplicates
+      if (!document.querySelector(".blank-box")) {
+        const blankBox = document.createElement("div");
+        blankBox.className = "blank-box";
 
-      recommendedSection.parentNode.insertBefore(blankBox, recommendedSection);
+        // Insert the blank box directly before the reference element
+        referenceElement.parentNode.insertBefore(blankBox, referenceElement);
 
-      fetch(chrome.runtime.getURL("content.html"))
-        .then((response) => response.text())
-        .then((html) => {
-          blankBox.innerHTML = html;
-        })
-        .catch((error) => console.error("Error loading HTML content:", error));
+        fetch(chrome.runtime.getURL("content.html"))
+          .then((response) => response.text())
+          .then((html) => {
+            blankBox.innerHTML = html;
+          })
+          .catch((error) => console.error("Error loading HTML content:", error));
 
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = chrome.runtime.getURL("styles.css");
-      document.head.appendChild(link);
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = chrome.runtime.getURL("styles.css");
+        document.head.appendChild(link);
+      }
     }
   }
 
   // Check if the page is ready and inject the UI
   window.addEventListener("load", () => {
     const observer = new MutationObserver(() => {
-      if (document.querySelector("#related")) {
+      if (document.querySelector(".style-scope.yt-chip-cloud-renderer")) {
         initializeUI();
-        observer.disconnect();
+        observer.disconnect(); // Disconnect observer if the blank box is injected
       }
     });
 
