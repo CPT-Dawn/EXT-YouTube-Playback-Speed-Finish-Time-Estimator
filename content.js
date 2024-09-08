@@ -29,15 +29,15 @@
       // Update time remaining
       document.getElementById("remainingTime").textContent = formatTime(remainingTime);
 
-      // Update finishing time
-      document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
+      // Update finishing time based on current playback speed
+      const currentPlaybackRate = video.playbackRate;
+      const adjustedFinishTime = new Date(Date.now() + (remainingTime / currentPlaybackRate) * 1000);
+      document.getElementById("finishTime").textContent = timeFormatter.format(adjustedFinishTime);
 
       // Update playback speeds and their corresponding finish times
       playbackSpeeds.forEach((speed) => {
         const speedFinishTime = timeFormatter.format(new Date(Date.now() + (remainingTime / speed) * 1000));
-        const speedElement = document.querySelector(
-          `#speed-${speed.toString().replace(".", "-") + "x"} .speed-time`
-        );
+        const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
 
         if (speedElement) {
           speedElement.textContent = speedFinishTime;
@@ -45,7 +45,6 @@
       });
 
       // Highlight the currently selected playback speed
-      const currentPlaybackRate = video.playbackRate;
       playbackSpeeds.forEach((speed) => {
         const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
         if (speedOption) {
@@ -89,6 +88,7 @@
               const speed = parseFloat(option.id.replace('speed-', '').replace('x', '').replace('-', '.'));
               if (!isNaN(speed) && video) {
                 video.playbackRate = speed;
+                updateUI(); // Immediately update UI when speed changes
               }
             });
           });
