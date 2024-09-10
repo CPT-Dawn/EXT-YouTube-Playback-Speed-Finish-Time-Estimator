@@ -10,6 +10,7 @@
   });
 
   function formatTime(seconds) {
+    if (isNaN(seconds) || seconds < 0) return "00:00:00"; // Handle invalid seconds
     const date = new Date(seconds * 1000);
     return date.toISOString().substr(11, 8);
   }
@@ -20,25 +21,31 @@
     if (video) {
       const currentTime = video.currentTime;
       const duration = video.duration;
-      const remainingTime = (duration - currentTime) / video.playbackRate; // Adjust remaining time by playback speed
+
+      if (isNaN(currentTime) || isNaN(duration) || duration <= 0) {
+        console.error("Invalid video time values");
+        return;
+      }
+
+      const remainingTime = (duration - currentTime) / video.playbackRate;
       const finishTime = new Date(Date.now() + remainingTime * 1000);
 
-      // Update current clock time at the top
+      // Update current time display
       document.getElementById("currentTime").textContent = timeFormatter.format(new Date());
 
-      // Update time remaining
+      // Update remaining time
       document.getElementById("remainingTime").textContent = formatTime(remainingTime);
 
-      // Update finishing time based on current playback speed
+      // Update finishing time
       document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
 
       // Update playback speeds and their corresponding finish times
       playbackSpeeds.forEach((speed) => {
-        const speedFinishTime = timeFormatter.format(new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000));
+        const speedFinishTime = new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000);
         const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
 
         if (speedElement) {
-          speedElement.textContent = speedFinishTime;
+          speedElement.textContent = formatTime((speedFinishTime.getTime() - Date.now()) / 1000);
         }
       });
 
@@ -60,13 +67,7 @@
     }
   }
 
-  function initializeUI() {
-    insertBlankBox();
-    video = document.querySelector("video");
-    setInterval(updateUI, 1000); // Update UI every second
-  }
-
-  function insertBlankBox() {
+  function insertUI() {
     const referenceElement = document.querySelector(".style-scope.yt-chip-cloud-renderer");
 
     if (referenceElement && !document.querySelector(".blank-box")) {
@@ -90,9 +91,16 @@
               }
             });
           });
+
+          // Set up video element
+          video = document.querySelector("video");
+          if (video) {
+            setInterval(updateUI, 1000); // Update UI every second
+          }
         })
         .catch((error) => console.error("Error loading HTML content:", error));
 
+      // Add stylesheet
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = chrome.runtime.getURL("styles.css");
@@ -100,14 +108,29 @@
     }
   }
 
-  window.addEventListener("load", () => {
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(".style-scope.yt-chip-cloud-renderer")) {
-        initializeUI();
-        observer.disconnect();
+  function checkAndInjectUI() {
+    // Ensure we're on a video watch page
+    const isVideoPage = window.location.pathname.includes("/watch");
+    if (isVideoPage) {
+      const videoElement = document.querySelector("video");
+      if (videoElement && !document.querySelector(".blank-box")) {
+        video = videoElement;
+        insertUI();
       }
-    });
+    }
+  }
 
-    observer.observe(document.body, { childList: true, subtree: true });
+  window.addEventListener("load", () => {
+    checkAndInjectUI();
+    
+    // Polling mechanism to retry injection if necessary
+    const intervalId = setInterval(() => {
+      if (window.location.pathname.includes("/watch")) {
+        checkAndInjectUI();
+      }
+    }, 1000); // Check every second
+
+    // Stop polling after a reasonable time (e.g., 30 seconds)
+    setTimeout(() => clearInterval(intervalId), 30000);
   });
 })();
