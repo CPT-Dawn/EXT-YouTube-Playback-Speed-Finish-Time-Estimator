@@ -16,91 +16,79 @@
   }
 
   function updateUI() {
+    if (!video) return;
+
     const playbackSpeeds = [1, 1.25, 1.5, 1.75, 2];
+    const currentTime = video.currentTime;
+    const duration = video.duration;
 
-    if (video) {
-      const currentTime = video.currentTime;
-      const duration = video.duration;
-
-      if (isNaN(currentTime) || isNaN(duration) || duration <= 0) {
-        console.error("Invalid video time values");
-        return;
-      }
-
-      const remainingTime = (duration - currentTime) / video.playbackRate;
-      const finishTime = new Date(Date.now() + remainingTime * 1000);
-
-      // Update current time display
-      document.getElementById("currentTime").textContent = timeFormatter.format(new Date());
-
-      // Update remaining time
-      document.getElementById("remainingTime").textContent = formatTime(remainingTime);
-
-      // Update finishing time
-      document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
-
-      // Update playback speeds and their corresponding finish times
-      playbackSpeeds.forEach((speed) => {
-        const speedFinishTime = new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000);
-        const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
-
-        if (speedElement) {
-          speedElement.textContent = formatTime((speedFinishTime.getTime() - Date.now()) / 1000);
-        }
-      });
-
-      // Highlight the currently selected playback speed
-      playbackSpeeds.forEach((speed) => {
-        const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
-        if (speedOption) {
-          speedOption.classList.toggle("selected-speed", speed === video.playbackRate);
-        }
-      });
-
-      // Update progress bar
-      const progressPercent = (currentTime / duration) * 100;
-      const progressBar = document.getElementById("progressBar");
-
-      if (progressBar) {
-        progressBar.style.width = `${progressPercent}%`;
-      }
+    if (isNaN(currentTime) || isNaN(duration) || duration <= 0) {
+      console.error("Invalid video time values");
+      return;
     }
+
+    const remainingTime = (duration - currentTime) / video.playbackRate;
+    const finishTime = new Date(Date.now() + remainingTime * 1000);
+
+    // Update UI elements
+    document.getElementById("currentTime").textContent = timeFormatter.format(new Date());
+    document.getElementById("remainingTime").textContent = formatTime(remainingTime);
+    document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
+
+    playbackSpeeds.forEach((speed) => {
+      const speedFinishTime = new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000);
+      const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
+      if (speedElement) {
+        speedElement.textContent = formatTime((speedFinishTime.getTime() - Date.now()) / 1000);
+      }
+    });
+
+    // Update progress bar
+    const progressPercent = (currentTime / duration) * 100;
+    const progressBar = document.getElementById("progressBar");
+    if (progressBar) {
+      progressBar.style.width = `${progressPercent}%`;
+    }
+
+    // Highlight the currently selected playback speed
+    playbackSpeeds.forEach((speed) => {
+      const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
+      if (speedOption) {
+        speedOption.classList.toggle("selected-speed", speed === video.playbackRate);
+      }
+    });
   }
 
   function insertUI() {
     const referenceElement = document.querySelector(".style-scope.yt-chip-cloud-renderer");
-
     if (referenceElement && !document.querySelector(".blank-box")) {
       const blankBox = document.createElement("div");
       blankBox.className = "blank-box";
-
       referenceElement.parentNode.insertBefore(blankBox, referenceElement);
 
       fetch(chrome.runtime.getURL("content.html"))
-        .then((response) => response.text())
-        .then((html) => {
+        .then(response => response.text())
+        .then(html => {
           blankBox.innerHTML = html;
 
-          // Add click event listeners to speed options
           document.querySelectorAll('.speed-option').forEach(option => {
             option.addEventListener('click', () => {
               const speed = parseFloat(option.id.replace('speed-', '').replace('x', '').replace('-', '.'));
               if (!isNaN(speed) && video) {
                 video.playbackRate = speed;
-                updateUI(); // Immediately update UI when speed changes
+                updateUI(); // Update UI immediately when speed changes
               }
             });
           });
 
-          // Set up video element
+          // Initialize video and set up UI updates
           video = document.querySelector("video");
           if (video) {
             setInterval(updateUI, 1000); // Update UI every second
           }
         })
-        .catch((error) => console.error("Error loading HTML content:", error));
+        .catch(error => console.error("Error loading HTML content:", error));
 
-      // Add stylesheet
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = chrome.runtime.getURL("styles.css");
@@ -109,28 +97,27 @@
   }
 
   function checkAndInjectUI() {
-    // Ensure we're on a video watch page
-    const isVideoPage = window.location.pathname.includes("/watch");
-    if (isVideoPage) {
-      const videoElement = document.querySelector("video");
-      if (videoElement && !document.querySelector(".blank-box")) {
-        video = videoElement;
+    if (window.location.pathname.includes("/watch")) {
+      if (!document.querySelector(".blank-box")) {
         insertUI();
       }
     }
   }
 
   window.addEventListener("load", () => {
+    // Check if it's a video watch page and inject UI
     checkAndInjectUI();
-    
-    // Polling mechanism to retry injection if necessary
-    const intervalId = setInterval(() => {
+
+    // Set up a MutationObserver to handle dynamic content changes
+    const observer = new MutationObserver(() => {
       if (window.location.pathname.includes("/watch")) {
         checkAndInjectUI();
       }
-    }, 1000); // Check every second
+    });
 
-    // Stop polling after a reasonable time (e.g., 30 seconds)
-    setTimeout(() => clearInterval(intervalId), 30000);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Stop observing after 30 seconds
+    setTimeout(() => observer.disconnect(), 30000);
   });
 })();
