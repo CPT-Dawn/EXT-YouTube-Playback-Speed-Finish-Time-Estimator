@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Playback Speed Finish Time Calculator for YouTube™",
-  "version": "1.0",
-  "description": "Shows real-time finish times for different YouTube playback speeds, letting users quickly view and choose their preferred speed",
+  "name": "YouTube Playback Speed Finish Time Estimator",
+  "version": "0.0.1",
+  "description": "Quickly estimate YouTube video finish times at different speeds and see when it'll end in real-time. Pick the perfect speed!",
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
