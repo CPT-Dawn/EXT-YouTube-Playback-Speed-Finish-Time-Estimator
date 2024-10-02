@@ -66,16 +66,15 @@ Take control of your YouTube experience with a smart extension that calculates v
 
 ## 🚀 Installation
 
-1. Download and install the extension from the [Chrome Web Store](#).
-2. Pin the extension for easy access.
-3. Start watching videos with a more productive, seamless experience!
+1. Download and install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/youtube-playback-speed-fi/albpnoibahehboglkghilhljilchnfbo?authuser=0&hl=en).
+2. Start watching videos with a more productive, seamless experience!
 
 ---
 
 ## 🛠️ How to Use
 
 1. Open any YouTube video.
-2. Find the **Playback Speed Finish Time Calculator** at the top of your screen.
+2. Find the **Playback Speed Finish Time Calculator** at the top of recommended video section.
 3. Adjust the speed and see the estimated finish time instantly.
 4. Track your progress with the real-time progress bar and enjoy efficient viewing.
 
@@ -101,7 +100,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 💬 Feedback & Support
 
-For feedback, suggestions, or issues, please open a [GitHub issue](https://github.com/your-username/your-repo-name/issues) or reach out via email.
+For feedback, suggestions, or issues, please open a [GitHub issue](https://github.com/CPT-Dawn/EXT-Playback-Speed-Finish-Time-Calculator-for-YouTube/issues) or reach out via email.
 
 ---
 
