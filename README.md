@@ -1,4 +1,4 @@
-# 🎬 YouTube Playback Speed Finish Time Estimator
+# [🎬 YouTube Playback Speed Finish Time Estimator](https://chromewebstore.google.com/detail/youtube-playback-speed-fi/albpnoibahehboglkghilhljilchnfbo?authuser=0&hl=en)
 
 **Quickly estimate YouTube video finish times at different speeds, track progress in real-time, and optimize your watching experience. All in one sleek, user-friendly extension.**
 
