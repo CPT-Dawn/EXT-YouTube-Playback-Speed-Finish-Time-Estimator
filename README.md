@@ -2,7 +2,7 @@
 
 **Quickly estimate YouTube video finish times at different speeds, track progress in real-time, and optimize your watching experience. All in one sleek, user-friendly extension.**
 
-![YouTube Extension](https://img.shields.io/badge/YouTube-Extension-red?style=flat-square)
+[![YouTube Extension](https://img.shields.io/badge/YouTube-Extension-red?style=flat-square)](https://chromewebstore.google.com/detail/youtube-playback-speed-fi/albpnoibahehboglkghilhljilchnfbo?authuser=0&hl=en)
 ![MIT License](https://img.shields.io/github/license/CPT-Dawn/EXT-Playback-Speed-Finish-Time-Calculator-for-YouTube?style=flat-square)
 ![Version](https://img.shields.io/badge/version-1.0.1-brightgreen?style=flat-square)
 
