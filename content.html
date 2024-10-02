@@ -8,29 +8,32 @@
 </head>
 <body>
     <div class="blank-box-content">
-        <!-- Current time display -->
+        <!-- Displays the current video playback time -->
         <div class="time" id="currentTime"></div>
 
-        <!-- Progress bar displaying current progress in video -->
+        <!-- Container for the progress bar, showing the current position in the video -->
         <div class="progress-bar">
             <div class="progress" id="progressBar"></div>
         </div>
 
-        <!-- Time information display for remaining time and finish time -->
+        <!-- Displays time-related information, including remaining time and estimated finish time -->
         <div class="time-info">
+            <!-- Displays the remaining time for video completion -->
             <div class="time-box" id="remainingTimeBox">
                 <div>Time Remaining:</div>
                 <div id="remainingTime">00:00:00</div>
             </div>
+            <!-- Displays the expected time of video completion -->
             <div class="time-box" id="finishTimeBox">
                 <div>Finishing At:</div>
                 <div id="finishTime">00:00:00</div>
             </div>
         </div>
 
-        <!-- Speed selection with dynamically updating finish times -->
+        <!-- Provides options to select video playback speed and view updated finish times for each speed -->
         <div class="speed-selection">
             <div>Speed Time Selection:</div>
+            <!-- Each speed option contains the corresponding finish time -->
             <div class="speed-option" id="speed-1x">
                 1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
             </div>
