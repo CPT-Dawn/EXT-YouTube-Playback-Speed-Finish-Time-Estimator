@@ -1,65 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Video Player Interface</title>
-    <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Custom UI</title>
 </head>
 <body>
-    <div class="blank-box-content">
-        <!-- Displays the current video playback time -->
-        <div class="time" id="currentTime"></div>
 
-        <!-- Container for the progress bar, showing the current position in the video -->
-        <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
-        </div>
+  <!-- Settings Icon to open the settings dropdown -->
+  <div id="settingsIcon" style="cursor: pointer; font-size: 20px;">⚙️</div>
 
-        <!-- Toggle switch for 12-hour / 24-hour time format -->
-        <div class="toggle-switch">
-            <label for="timeFormatToggle">24H / 12H</label>
-            <label class="switch">
-                <input type="checkbox" id="timeFormatToggle" />
-                <span class="slider round"></span>
-            </label>
-        </div>
+  <!-- Settings Dropdown -->
+  <div id="settingsDropdown" style="display:none;">
+    <label for="timeFormatToggle">Time Format (24-hour):</label>
+    <input type="checkbox" id="timeFormatToggle" checked>
+  </div>
 
-        <!-- Displays time-related information, including remaining time and estimated finish time -->
-        <div class="time-info">
-            <!-- Displays the remaining time for video completion -->
-            <div class="time-box" id="remainingTimeBox">
-                <div>Time Remaining:</div>
-                <div id="remainingTime">00:00:00</div>
-            </div>
-            <!-- Displays the expected time of video completion -->
-            <div class="time-box" id="finishTimeBox">
-                <div>Finishing At:</div>
-                <div id="finishTime">00:00:00</div>
-            </div>
-        </div>
-
-        <!-- Provides options to select video playback speed and view updated finish times for each speed -->
-        <div class="speed-selection">
-            <div>Speed Time Selection:</div>
-            <!-- Each speed option contains the corresponding finish time -->
-            <div class="speed-option" id="speed-1x">
-                1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-25x">
-                1.25x: <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-5x">
-                1.5x: <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-75x">
-                1.75x: <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-2x">
-                2x: <span class="speed-time" id="speed-2x-time">00:00:00</span>
-            </div>
-        </div>
+  <!-- Custom UI for video time info and playback speed -->
+  <div class="custom-ui">
+    <div class="time-info">
+      <span id="currentTime">00:00:00</span>
+      <span id="remainingTime">00:00:00</span>
+      <span id="finishTime">00:00:00</span>
     </div>
-    <script src="script.js"></script>
+    <div class="progress-bar">
+      <div id="progressBar"></div>
+    </div>
+    <div class="speed-options">
+      <span id="speed-1x" class="speed-option">1x</span>
+      <span id="speed-1-25x" class="speed-option">1.25x</span>
+      <span id="speed-1-5x" class="speed-option">1.5x</span>
+      <span id="speed-1-75x" class="speed-option">1.75x</span>
+      <span id="speed-2x" class="speed-option">2x</span>
+    </div>
+  </div>
+
+  <script src="content.js"></script>
+
 </body>
 </html>

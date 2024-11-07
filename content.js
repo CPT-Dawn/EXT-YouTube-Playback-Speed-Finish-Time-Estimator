@@ -132,6 +132,21 @@
       is24HourFormat = this.checked; // Switch between 24H and 12H when the toggle changes
       updateUI(); // Update UI to reflect the change immediately
     });
+
+    const settingsIcon = document.getElementById("settingsIcon");
+    const settingsDropdown = document.getElementById("settingsDropdown");
+
+    // Toggle dropdown visibility when the settings icon is clicked
+    settingsIcon.addEventListener("click", () => {
+        settingsDropdown.style.display = settingsDropdown.style.display === "block" ? "none" : "block";
+    });
+
+    // Hide dropdown when clicking outside of it
+    document.addEventListener("click", (e) => {
+        if (!settingsIcon.contains(e.target) && !settingsDropdown.contains(e.target)) {
+            settingsDropdown.style.display = "none";
+        }
+    });
   });
 
   // Check if it's a video watch page and inject UI
