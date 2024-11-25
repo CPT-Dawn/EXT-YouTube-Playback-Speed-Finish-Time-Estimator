@@ -8,8 +8,12 @@
 </head>
 <body>
     <div class="blank-box-content">
-        <!-- Displays the current video playback time -->
-        <div class="time" id="currentTime"></div>
+        <!-- Displays the current video playback time and an empty toggle for future use -->
+        <div class="time">
+            <span id="currentTime">00:00:00</span>
+            <!-- Blank toggle for future use -->
+            <div id="blankToggle" class="blank-toggle"></div>
+        </div>
 
         <!-- Container for the progress bar, showing the current position in the video -->
         <div class="progress-bar">

@@ -35,7 +35,7 @@
     const finishTime = new Date(Date.now() + remainingTime * 1000);
 
     // Update displayed current time, remaining time, and finish time
-    document.getElementById("currentTime").textContent = timeFormatter.format(new Date());
+    document.getElementById("currentTime").textContent = formatTime(currentTime);
     document.getElementById("remainingTime").textContent = formatTime(remainingTime);
     document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
 
@@ -77,6 +77,29 @@
         .then(response => response.text())
         .then(html => {
           blankBox.innerHTML = html;
+
+          // Add blank toggle next to current time
+          const currentTimeBox = document.getElementById("currentTimeBox");
+          const blankToggle = document.createElement("div");
+          blankToggle.id = "blankToggle";
+          blankToggle.classList.add("blank-toggle"); // Styling placeholder
+          currentTimeBox.appendChild(blankToggle);
+
+          // Add dropdown menu that will be toggled
+          const dropdownMenu = document.createElement("div");
+          dropdownMenu.id = "dropdownMenu";
+          dropdownMenu.classList.add("dropdown-menu"); // Styling placeholder for dropdown
+          dropdownMenu.style.display = "none"; // Hidden initially
+          dropdownMenu.innerHTML = "<p>Future Option</p>"; // Placeholder content for the dropdown
+          blankToggle.appendChild(dropdownMenu);
+
+          // Toggle dropdown visibility on click of blankToggle
+          blankToggle.addEventListener('click', () => {
+            console.log("Blank toggle clicked!"); // Debugging line
+            const isVisible = dropdownMenu.style.display === "block";
+            console.log("Dropdown visibility: ", isVisible ? "Visible" : "Hidden"); // Debugging line
+            dropdownMenu.style.display = isVisible ? "none" : "block"; // Toggle visibility
+          });
 
           // Set up click events for speed selection
           document.querySelectorAll('.speed-option').forEach(option => {

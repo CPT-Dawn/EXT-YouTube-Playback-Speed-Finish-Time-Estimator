@@ -16,6 +16,37 @@ body {
     gap: 18px;
     max-width: 600px;
 }
+.blank-toggle {
+    width: 20px; /* Adjust size */
+    height: 20px;
+    background-color: #ccc; /* Make sure it's visible */
+    border: 1px solid #ccc;
+    margin-left: 10px;
+    cursor: pointer; /* Indicate it's clickable */
+    display: inline-block;
+    text-align: center;
+    line-height: 20px;
+}
+
+.dropdown-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-menu p {
+    margin: 0;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.dropdown-menu p:hover {
+    background-color: #f0f0f0;
+}
 
 #currentTime {
     background-color: rgba(49, 49, 49, 0.7);
