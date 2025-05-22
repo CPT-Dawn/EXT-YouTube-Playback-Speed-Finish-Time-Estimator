@@ -1,132 +1,168 @@
 (function () {
-  let video;
+  let injected = false;
+  let lastUrl = location.href;
 
-  // Formatter to ensure a consistent 24-hour time format for displayed times
-  const timeFormatter = new Intl.DateTimeFormat('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
+  // Check if current page is a valid watch page
+  function isValidWatchPage() {
+    try {
+      const url = new URL(window.location.href);
+      return url.pathname === "/watch" && url.searchParams.has("v");
+    } catch {
+      return false;
+    }
+  }
 
-  // Converts seconds into a "HH:MM:SS" format
+  // Format seconds to HH:MM:SS
   function formatTime(seconds) {
-    if (isNaN(seconds) || seconds < 0) return "00:00:00"; // Handle invalid seconds
+    if (isNaN(seconds) || seconds < 0) return "00:00:00";
     const date = new Date(seconds * 1000);
     return date.toISOString().substr(11, 8);
   }
 
-  // Updates the UI with the current playback information (time, progress, speeds)
-  function updateUI() {
-    if (!video) return;
-
-    const playbackSpeeds = [1, 1.25, 1.5, 1.75, 2]; // Available playback speeds
+  // Update UI elements with timing info
+  function updateUI(video) {
+    const speeds = [1, 1.25, 1.5, 1.75, 2];
     const currentTime = video.currentTime;
     const duration = video.duration;
+    if (isNaN(currentTime) || isNaN(duration) || duration <= 0) return;
 
-    // Guard against invalid time values in the video element
-    if (isNaN(currentTime) || isNaN(duration) || duration <= 0) {
-      console.error("Invalid video time values");
-      return;
-    }
+    const remaining = (duration - currentTime) / video.playbackRate;
+    const finish = new Date(Date.now() + remaining * 1000);
 
-    // Calculate remaining time and the finish time based on the current playback rate
-    const remainingTime = (duration - currentTime) / video.playbackRate;
-    const finishTime = new Date(Date.now() + remainingTime * 1000);
+    const currentTimeEl = document.getElementById("currentTime");
+    const remainingTimeEl = document.getElementById("remainingTime");
+    const finishTimeEl = document.getElementById("finishTime");
+    if (currentTimeEl)
+      currentTimeEl.textContent = new Date().toLocaleTimeString();
+    if (remainingTimeEl) remainingTimeEl.textContent = formatTime(remaining);
+    if (finishTimeEl) finishTimeEl.textContent = finish.toLocaleTimeString();
 
-    // Update displayed current time, remaining time, and finish time
-    document.getElementById("currentTime").textContent = timeFormatter.format(new Date());
-    document.getElementById("remainingTime").textContent = formatTime(remainingTime);
-    document.getElementById("finishTime").textContent = timeFormatter.format(finishTime);
-
-    // Update each speed option's finish time based on the selected speed
-    playbackSpeeds.forEach((speed) => {
-      const speedFinishTime = new Date(Date.now() + (remainingTime * video.playbackRate / speed) * 1000);
-      const speedElement = document.querySelector(`#speed-${speed.toString().replace(".", "-") + "x-time"}`);
-      if (speedElement) {
-        speedElement.textContent = formatTime((speedFinishTime.getTime() - Date.now()) / 1000);
-      }
+    speeds.forEach((s) => {
+      const end = new Date(
+        Date.now() + ((remaining * video.playbackRate) / s) * 1000
+      );
+      const el = document.querySelector(
+        `#speed-${s.toString().replace(".", "-")}x-time`
+      );
+      if (el) el.textContent = formatTime((end.getTime() - Date.now()) / 1000);
     });
 
-    // Update the progress bar based on current video time
-    const progressPercent = (currentTime / duration) * 100;
-    const progressBar = document.getElementById("progressBar");
-    if (progressBar) {
-      progressBar.style.width = `${progressPercent}%`;
-    }
+    const bar = document.getElementById("progressBar");
+    if (bar) bar.style.width = `${(currentTime / duration) * 100}%`;
 
-    // Highlight the currently selected playback speed in the UI
-    playbackSpeeds.forEach((speed) => {
-      const speedOption = document.getElementById(`speed-${speed.toString().replace(".", "-") + "x"}`);
-      if (speedOption) {
-        speedOption.classList.toggle("selected-speed", speed === video.playbackRate);
-      }
+    speeds.forEach((s) => {
+      const btn = document.getElementById(
+        `speed-${s.toString().replace(".", "-")}x`
+      );
+      if (btn) btn.classList.toggle("selected-speed", s === video.playbackRate);
     });
   }
 
-  // Inserts the custom UI into the page and sets up event listeners
-  function insertUI() {
-    const referenceElement = document.querySelector(".style-scope.yt-chip-cloud-renderer");
-    if (referenceElement && !document.querySelector(".blank-box")) {
-      const blankBox = document.createElement("div");
-      blankBox.className = "blank-box";
-      referenceElement.parentNode.insertBefore(blankBox, referenceElement);
+  // Inject your UI once video and container are ready
+  async function injectUI(video) {
+    if (injected) return;
 
-      // Load and inject the HTML for the UI
-      fetch(chrome.runtime.getURL("content.html"))
-        .then(response => response.text())
-        .then(html => {
-          blankBox.innerHTML = html;
+    const container = document.querySelector(
+      ".style-scope.yt-chip-cloud-renderer"
+    );
+    if (!container || !video) return;
 
-          // Set up click events for speed selection
-          document.querySelectorAll('.speed-option').forEach(option => {
-            option.addEventListener('click', () => {
-              const speed = parseFloat(option.id.replace('speed-', '').replace('x', '').replace('-', '.'));
-              if (!isNaN(speed) && video) {
-                video.playbackRate = speed;
-                updateUI(); // Update UI immediately when speed changes
-              }
-            });
-          });
+    const box = document.createElement("div");
+    box.className = "blank-box";
 
-          // Initialize the video element and start UI updates
-          video = document.querySelector("video");
-          if (video) {
-            setInterval(updateUI, 1000); // Continuously update the UI every second
+    container.parentNode.insertBefore(box, container);
+
+    try {
+      const response = await fetch(chrome.runtime.getURL("content.html"));
+      const html = await response.text();
+      box.innerHTML = html;
+
+      // Attach speed button click handlers
+      box.querySelectorAll(".speed-option").forEach((el) => {
+        el.addEventListener("click", () => {
+          const speed = parseFloat(
+            el.id.replace("speed-", "").replace("x", "").replace("-", ".")
+          );
+          if (!isNaN(speed)) {
+            video.playbackRate = speed;
+            updateUI(video);
           }
-        })
-        .catch(error => console.error("Error loading HTML content:", error));
+        });
+      });
 
-      // Load and inject the CSS file for the UI styling
+      // Update UI every second
+      setInterval(() => updateUI(video), 1000);
+    } catch (e) {
+      console.error("Failed to load content.html", e);
+    }
+
+    // Load styles.css once
+    if (!document.getElementById("yt-time-estimator-styles")) {
       const link = document.createElement("link");
+      link.id = "yt-time-estimator-styles";
       link.rel = "stylesheet";
       link.href = chrome.runtime.getURL("styles.css");
       document.head.appendChild(link);
     }
+
+    injected = true;
   }
 
-  // Checks if the current page is a video watch page and inserts the UI if necessary
-  function checkAndInjectUI() {
-    if (window.location.pathname.includes("/watch")) {
-      if (!document.querySelector(".blank-box")) {
-        insertUI();
+  // Wait for video and container elements (timeout 10s)
+  function waitForElements(selectorVideo, selectorContainer, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      const intervalTime = 100;
+      let elapsed = 0;
+
+      const interval = setInterval(() => {
+        const video = document.querySelector(selectorVideo);
+        const container = document.querySelector(selectorContainer);
+
+        if (video && container) {
+          clearInterval(interval);
+          resolve({ video, container });
+        } else {
+          elapsed += intervalTime;
+          if (elapsed >= timeout) {
+            clearInterval(interval);
+            reject(new Error("Timeout waiting for elements"));
+          }
+        }
+      }, intervalTime);
+    });
+  }
+
+  // Try to inject UI only on valid watch page
+  async function tryInject() {
+    if (!isValidWatchPage()) {
+      if (injected) {
+        // Optional: remove UI on leaving watch page (not mandatory)
+        injected = false;
       }
+      return;
+    }
+    if (injected) return;
+
+    try {
+      const { video } = await waitForElements(
+        "video",
+        ".style-scope.yt-chip-cloud-renderer"
+      );
+      injectUI(video);
+    } catch {
+      // ignore and retry later
     }
   }
 
-  // Event listener for page load to trigger UI injection
-  window.addEventListener("load", () => {
-    checkAndInjectUI(); // Initial check on page load
+  // Detect SPA navigation by polling URL
+  setInterval(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      injected = false;
+      tryInject();
+    }
+  }, 500);
 
-    // Set up a MutationObserver to handle dynamic content changes on YouTube pages
-    const observer = new MutationObserver(() => {
-      if (window.location.pathname.includes("/watch")) {
-        checkAndInjectUI();
-      }
-    });
-
-    // Observe changes to the DOM for 30 seconds to detect dynamic page transitions
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 30000); // Stop observing after 30 seconds
-  });
+  // Initial attempt
+  tryInject();
 })();
