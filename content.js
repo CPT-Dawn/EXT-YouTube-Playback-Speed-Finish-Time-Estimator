@@ -19,6 +19,43 @@
     return date.toISOString().substr(11, 8);
   }
 
+  // Update main clock
+  function updateMainClock() {
+    const mainClockEl = document.getElementById("mainClock");
+    if (mainClockEl) {
+      const now = new Date();
+      mainClockEl.textContent = now.toLocaleTimeString();
+    }
+  }
+
+  // Show/hide playlist section based on playlist detection
+  function updatePlaylistVisibility() {
+    const playlistSection = document.getElementById(
+      "yt-playlist-expandable-summary"
+    );
+    if (playlistSection) {
+      const hasPlaylist = isPlaylistVideo();
+      const hasPlaylistData = getPlaylistInfo() !== null;
+
+      // Only show if we have both playlist detection AND actual playlist data
+      const shouldShow = hasPlaylist && hasPlaylistData;
+
+      if (shouldShow) {
+        playlistSection.style.display = "block";
+        playlistSection.style.visibility = "visible";
+        console.log(
+          "YouTube Time Estimator: Playlist detected with data, showing playlist section"
+        );
+      } else {
+        playlistSection.style.display = "none";
+        playlistSection.style.visibility = "hidden";
+        console.log(
+          "YouTube Time Estimator: No playlist or playlist data, hiding playlist section"
+        );
+      }
+    }
+  }
+
   // Update UI elements with timing info
   function updateUI(video) {
     const speeds = [1, 1.25, 1.5, 1.75, 2];
@@ -28,6 +65,9 @@
 
     const remaining = (duration - currentTime) / video.playbackRate;
     const finish = new Date(Date.now() + remaining * 1000);
+
+    // Update main clock
+    updateMainClock();
 
     const currentTimeEl = document.getElementById("currentTime");
     const remainingTimeEl = document.getElementById("remainingTime");
@@ -56,6 +96,65 @@
       );
       if (btn) btn.classList.toggle("selected-speed", s === video.playbackRate);
     });
+  }
+
+  // Helper to check if current video is part of a playlist
+  function isPlaylistVideo() {
+    // Check for playlist panel
+    const playlistPanel = document.querySelector("ytd-playlist-panel-renderer");
+    if (playlistPanel) return true;
+
+    // Check for queue (watch-next items)
+    const queueItems = document.querySelectorAll("ytd-compact-video-renderer");
+    if (queueItems.length > 0) return true;
+
+    // Check for playlist in URL
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("list")) return true;
+
+    // Check for playlist sidebar
+    const playlistSidebar = document.querySelector(
+      "ytd-playlist-sidebar-renderer"
+    );
+    if (playlistSidebar) return true;
+
+    // Check for playlist items in the sidebar
+    const playlistItems = document.querySelectorAll(
+      "ytd-playlist-panel-video-renderer"
+    );
+    if (playlistItems.length > 0) return true;
+
+    // Check for "Up next" section with multiple videos
+    const upNextSection = document.querySelector(
+      "ytd-watch-next-secondary-results-renderer"
+    );
+    if (upNextSection) {
+      const upNextVideos = upNextSection.querySelectorAll(
+        "ytd-compact-video-renderer"
+      );
+      if (upNextVideos.length > 1) return true;
+    }
+
+    // Check for autoplay queue
+    const autoplayQueue = document.querySelector("ytd-autoplay-renderer");
+    if (autoplayQueue) return true;
+
+    // Check for watch queue (when videos are added to queue)
+    const watchQueue = document.querySelector("ytd-watch-queue-renderer");
+    if (watchQueue) return true;
+
+    // Check for any video list in the sidebar
+    const videoList = document.querySelector(
+      "ytd-video-secondary-info-renderer"
+    );
+    if (videoList) {
+      const relatedVideos = videoList.querySelectorAll(
+        "ytd-compact-video-renderer"
+      );
+      if (relatedVideos.length > 0) return true;
+    }
+
+    return false;
   }
 
   // Helper to get playlist info and calculate remaining time
@@ -228,108 +327,79 @@
     bar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
   }
 
-  function getCurrentChapter(video) {
-    // Try to find chapter markers in the progress bar
-    const chapters = Array.from(
-      document.querySelectorAll(
-        ".ytp-chapter-hover-container, .ytp-chapter-marker"
-      )
-    );
-    if (!chapters.length) return null;
-    // Get chapter times from aria-labels or data attributes
-    let chapterTimes = [];
-    chapters.forEach((ch) => {
-      let start = null;
-      if (ch.dataset && ch.dataset.chapterStartTimeSecs) {
-        start = parseFloat(ch.dataset.chapterStartTimeSecs);
-      } else if (ch.getAttribute("aria-label")) {
-        // aria-label: "Chapter: Intro. Starts at 0:00"
-        const match = ch
-          .getAttribute("aria-label")
-          .match(/(\d+):(\d+)(?::(\d+))?/);
-        if (match) {
-          start = parseInt(match[1]) * 60 + parseInt(match[2]);
-          if (match[3]) start += parseInt(match[3]);
-        }
+  // Setup expandable sections
+  function setupExpandableSections(box) {
+    // Video expandable summary logic
+    const expandable = box.querySelector("#yt-expandable-summary");
+    const expandBtn = box.querySelector("#yt-expand-btn");
+    let expanded = false;
+    function setExpanded(state) {
+      expanded = state;
+      if (expanded) {
+        expandable.classList.add("expanded");
+      } else {
+        expandable.classList.remove("expanded");
       }
-      if (start !== null) chapterTimes.push(start);
-    });
-    chapterTimes = chapterTimes.sort((a, b) => a - b);
-    if (!chapterTimes.length) return null;
-    // Find current chapter index
-    const currentTime = video.currentTime;
-    let idx = 0;
-    for (let i = 0; i < chapterTimes.length; i++) {
-      if (currentTime >= chapterTimes[i]) idx = i;
     }
-    const start = chapterTimes[idx];
-    const end =
-      chapterTimes[idx + 1] !== undefined
-        ? chapterTimes[idx + 1]
-        : video.duration;
-    return { start, end };
-  }
-
-  function updateChapterUI(video) {
-    const speeds = [1, 1.25, 1.5, 1.75, 2];
-    const chapter = getCurrentChapter(video);
-    const section = document.querySelector(".chapter-section");
-    if (!chapter) {
-      // Remove any previous message
-      let msg = section.querySelector(".no-chapters-msg");
-      if (!msg) {
-        msg = document.createElement("div");
-        msg.className = "no-chapters-msg";
-        msg.textContent = "No chapters present in this video";
-        section.appendChild(msg);
-      }
-      // Hide all chapter-option rows
-      section
-        .querySelectorAll(".chapter-option")
-        .forEach((opt) => (opt.style.display = "none"));
-      return;
-    } else {
-      // Remove message if present
-      const msg = section.querySelector(".no-chapters-msg");
-      if (msg) msg.remove();
-      section
-        .querySelectorAll(".chapter-option")
-        .forEach((opt) => (opt.style.display = "flex"));
-    }
-    const remaining = Math.max(0, chapter.end - video.currentTime);
-    speeds.forEach((s) => {
-      const tEl = document.getElementById(
-        `chapter-${s.toString().replace(".", "-")}x-time`
-      );
-      const eEl = document.getElementById(
-        `chapter-${s.toString().replace(".", "-")}x-end`
-      );
-      if (tEl) tEl.textContent = formatTime(remaining / s);
-      if (eEl) {
-        const endTime = new Date(Date.now() + (remaining / s) * 1000);
-        eEl.textContent = endTime.toLocaleTimeString();
-      }
-    });
-  }
-
-  // Tab switching logic
-  function setupTabs(box) {
-    const tabBtns = box.querySelectorAll(".yt-tab-btn");
-    const tabPanels = box.querySelectorAll(".yt-tab-panel");
-    tabBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        tabBtns.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const tab = btn.getAttribute("data-tab");
-        tabPanels.forEach((panel) => {
-          if (panel.id === `yt-tab-${tab}`) {
-            panel.style.display = "block";
-          } else {
-            panel.style.display = "none";
-          }
-        });
+    // Click to toggle
+    if (expandBtn) {
+      expandBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setExpanded(!expanded);
       });
-    });
+    }
+    // Click on card to toggle (except button)
+    const header = box.querySelector("#yt-expandable-header");
+    if (header) {
+      header.addEventListener("click", (e) => {
+        if (e.target === expandBtn) return;
+        setExpanded(!expanded);
+      });
+    }
+    // Hover to expand (desktop only)
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      expandable.addEventListener("mouseenter", () => setExpanded(true));
+      expandable.addEventListener("mouseleave", () => setExpanded(false));
+    }
+
+    // Playlist expandable summary logic
+    const playlistExpandable = box.querySelector(
+      "#yt-playlist-expandable-summary"
+    );
+    const playlistExpandBtn = box.querySelector("#yt-playlist-expand-btn");
+    let playlistExpanded = false;
+    function setPlaylistExpanded(state) {
+      playlistExpanded = state;
+      if (playlistExpanded) {
+        playlistExpandable.classList.add("expanded");
+      } else {
+        playlistExpandable.classList.remove("expanded");
+      }
+    }
+    // Click to toggle
+    if (playlistExpandBtn) {
+      playlistExpandBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setPlaylistExpanded(!playlistExpanded);
+      });
+    }
+    // Click on card to toggle (except button)
+    const playlistHeader = box.querySelector("#yt-playlist-expandable-header");
+    if (playlistHeader) {
+      playlistHeader.addEventListener("click", (e) => {
+        if (e.target === playlistExpandBtn) return;
+        setPlaylistExpanded(!playlistExpanded);
+      });
+    }
+    // Hover to expand (desktop only)
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      playlistExpandable.addEventListener("mouseenter", () =>
+        setPlaylistExpanded(true)
+      );
+      playlistExpandable.addEventListener("mouseleave", () =>
+        setPlaylistExpanded(false)
+      );
+    }
   }
 
   // Inject your UI once video and container are ready
@@ -369,11 +439,14 @@
 
       // Update UI every second
       setInterval(() => updateUI(video), 1000);
+      setInterval(() => updateMainClock(), 1000);
       setInterval(() => updatePlaylistSpeedTimes(video, null), 1000);
       setInterval(() => updatePlaylistCurrentSpeedInfo(video, null), 1000);
       setInterval(() => updatePlaylistEndTimeUI(video, null), 1000);
       setInterval(() => updatePlaylistProgressBar(video, null), 1000);
-      setInterval(() => updateChapterUI(video), 1000);
+
+      // Check playlist visibility every 2 seconds
+      setInterval(() => updatePlaylistVisibility(), 2000);
 
       // Populate playlist-video-select dropdown
       const playlistSelect = box.querySelector("#playlist-video-select");
@@ -419,6 +492,7 @@
         );
       });
       setInterval(() => {
+        updateMainClock();
         updatePlaylistSpeedTimes(
           video,
           lastSelectedNum === "end" ? null : parseInt(lastSelectedNum, 10)
@@ -437,7 +511,10 @@
         );
       }, 1000);
 
-      setupTabs(box);
+      setupExpandableSections(box);
+
+      // Initial playlist visibility check
+      updatePlaylistVisibility();
     } catch (e) {
       console.error("Failed to load content.html", e);
     }
