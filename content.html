@@ -1,56 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video Player Interface</title>
     <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-    <div class="blank-box-content">
-        <!-- Displays the current video playback time -->
-        <div class="time" id="currentTime"></div>
-
-        <!-- Container for the progress bar, showing the current position in the video -->
+  </head>
+  <body>
+    <div class="yt-estimator-tabs">
+      <button class="yt-tab-btn active" data-tab="video">Video</button>
+      <button class="yt-tab-btn" data-tab="playlist">Playlist</button>
+      <button class="yt-tab-btn" data-tab="chapters">Chapters</button>
+    </div>
+    <div class="yt-estimator-tab-content">
+      <div class="yt-tab-panel" id="yt-tab-video" style="display: block">
+        <!-- Video tab content -->
         <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
+          <div class="progress" id="progressBar"></div>
         </div>
-
-        <!-- Displays time-related information, including remaining time and estimated finish time -->
         <div class="time-info">
-            <!-- Displays the remaining time for video completion -->
-            <div class="time-box" id="remainingTimeBox">
-                <div>Time Remaining:</div>
-                <div id="remainingTime">00:00:00</div>
-            </div>
-            <!-- Displays the expected time of video completion -->
-            <div class="time-box" id="finishTimeBox">
-                <div>Finishing At:</div>
-                <div id="finishTime">00:00:00</div>
-            </div>
+          <div class="time-box" id="remainingTimeBox">
+            <div>Time Remaining:</div>
+            <div id="remainingTime">00:00:00</div>
+          </div>
+          <div class="time-box" id="finishTimeBox">
+            <div>Finishing At:</div>
+            <div id="finishTime">00:00:00</div>
+          </div>
         </div>
-
-        <!-- Provides options to select video playback speed and view updated finish times for each speed -->
         <div class="speed-selection">
-            <div>Speed Time Selection:</div>
-            <!-- Each speed option contains the corresponding finish time -->
-            <div class="speed-option" id="speed-1x">
-                1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-25x">
-                1.25x: <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-5x">
-                1.5x: <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-1-75x">
-                1.75x: <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
-            </div>
-            <div class="speed-option" id="speed-2x">
-                2x: <span class="speed-time" id="speed-2x-time">00:00:00</span>
-            </div>
+          <div>Speed Time Selection:</div>
+          <div class="speed-option" id="speed-1x">
+            1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
+          </div>
+          <div class="speed-option" id="speed-1-25x">
+            1.25x:
+            <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
+          </div>
+          <div class="speed-option" id="speed-1-5x">
+            1.5x: <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
+          </div>
+          <div class="speed-option" id="speed-1-75x">
+            1.75x:
+            <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
+          </div>
+          <div class="speed-option" id="speed-2x">
+            2x: <span class="speed-time" id="speed-2x-time">00:00:00</span>
+          </div>
         </div>
+      </div>
+      <div class="yt-tab-panel" id="yt-tab-playlist" style="display: none">
+        <!-- Playlist tab content -->
+        <div class="playlist-controls-row">
+          <label for="playlist-video-select">Calculate up to video #:</label>
+          <select
+            id="playlist-video-select"
+            class="playlist-video-select"
+          ></select>
+        </div>
+        <div class="playlist-progress-bar">
+          <div class="playlist-progress" id="playlistProgressBar"></div>
+        </div>
+        <div class="playlist-info-row-group">
+          <div class="playlist-info-row-box">
+            <div>Time Remaining:</div>
+            <div class="playlist-info-value" id="playlist-remaining-time">
+              00:00:00
+            </div>
+          </div>
+          <div class="playlist-info-row-box">
+            <div>Finishing At:</div>
+            <div class="playlist-info-value" id="playlist-finishing-time">
+              --:--:--
+            </div>
+          </div>
+        </div>
+        <div class="speed-selection playlist-speed-selection">
+          <div>Speed Time Selection:</div>
+          <div class="speed-option" id="playlist-speed-1x">
+            1x:
+            <span class="speed-time" id="playlist-speed-1x-time">00:00:00</span>
+          </div>
+          <div class="speed-option" id="playlist-speed-1-25x">
+            1.25x:
+            <span class="speed-time" id="playlist-speed-1-25x-time"
+              >00:00:00</span
+            >
+          </div>
+          <div class="speed-option" id="playlist-speed-1-5x">
+            1.5x:
+            <span class="speed-time" id="playlist-speed-1-5x-time"
+              >00:00:00</span
+            >
+          </div>
+          <div class="speed-option" id="playlist-speed-1-75x">
+            1.75x:
+            <span class="speed-time" id="playlist-speed-1-75x-time"
+              >00:00:00</span
+            >
+          </div>
+          <div class="speed-option" id="playlist-speed-2x">
+            2x:
+            <span class="speed-time" id="playlist-speed-2x-time">00:00:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="yt-tab-panel" id="yt-tab-chapters" style="display: none">
+        <!-- Chapters tab content -->
+        <div class="chapter-section">
+          <div>Current Chapter Timing:</div>
+          <div class="chapter-option" id="chapter-1x">
+            1x:
+            <span class="chapter-time" id="chapter-1x-time">00:00:00</span> |
+            Finishing At:
+            <span class="chapter-end" id="chapter-1x-end">--:--:--</span>
+          </div>
+          <div class="chapter-option" id="chapter-1-25x">
+            1.25x:
+            <span class="chapter-time" id="chapter-1-25x-time">00:00:00</span> |
+            Finishing At:
+            <span class="chapter-end" id="chapter-1-25x-end">--:--:--</span>
+          </div>
+          <div class="chapter-option" id="chapter-1-5x">
+            1.5x:
+            <span class="chapter-time" id="chapter-1-5x-time">00:00:00</span> |
+            Finishing At:
+            <span class="chapter-end" id="chapter-1-5x-end">--:--:--</span>
+          </div>
+          <div class="chapter-option" id="chapter-1-75x">
+            1.75x:
+            <span class="chapter-time" id="chapter-1-75x-time">00:00:00</span> |
+            Finishing At:
+            <span class="chapter-end" id="chapter-1-75x-end">--:--:--</span>
+          </div>
+          <div class="chapter-option" id="chapter-2x">
+            2x:
+            <span class="chapter-time" id="chapter-2x-time">00:00:00</span> |
+            Finishing At:
+            <span class="chapter-end" id="chapter-2x-end">--:--:--</span>
+          </div>
+        </div>
+      </div>
     </div>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
