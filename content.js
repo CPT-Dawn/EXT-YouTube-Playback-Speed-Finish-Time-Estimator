@@ -62,6 +62,9 @@
   async function injectUI(video) {
     if (injected) return;
 
+    // Remove any existing injected UI to prevent duplicates
+    document.querySelectorAll(".blank-box").forEach((el) => el.remove());
+
     const container = document.querySelector(
       ".style-scope.yt-chip-cloud-renderer"
     );

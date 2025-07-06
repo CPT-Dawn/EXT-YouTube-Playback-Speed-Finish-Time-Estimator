@@ -31,10 +31,10 @@ Take control of your YouTube experience with a smart extension that calculates v
   A sleek progress bar tracks your current position in the video, helping you visualize how far you've come.
 
 - **🎛️ Custom Playback Speed Selection**  
-  Adjust playback speed directly from the extension's UI, without diving into YouTube’s menus.
+  Adjust playback speed directly from the extension's UI, without diving into YouTube's menus.
 
 - **🎨 Supports Ambient Mode**  
-  Seamlessly integrates with YouTube’s Ambient Mode for a modern and immersive experience.
+  Seamlessly integrates with YouTube's Ambient Mode for a modern and immersive experience.
 
 ---
 
@@ -47,14 +47,14 @@ Take control of your YouTube experience with a smart extension that calculates v
   Know when a video will end, helping you fit it into your schedule without the hassle.
 
 - **🌐 User-Friendly Interface**  
-  With a sleek, intuitive design, the extension feels like a natural part of YouTube’s interface, offering everything you need at a glance.
+  With a sleek, intuitive design, the extension feels like a natural part of YouTube's interface, offering everything you need at a glance.
 
 ---
 
-## 👥 Perfect For:
+## �� Perfect For:
 
 - **📚 Students**  
-  Speed through lectures or study materials, knowing exactly how much time you’ll save at each speed.
+  Speed through lectures or study materials, knowing exactly how much time you'll save at each speed.
 
 - **💼 Professionals**  
   Streamline your learning from webinars, business tutorials, and educational content with real-time tracking.
@@ -67,7 +67,7 @@ Take control of your YouTube experience with a smart extension that calculates v
 ## 🚀 Installation
 
 1. Download and install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/youtube-playback-speed-fi/albpnoibahehboglkghilhljilchnfbo?authuser=0&hl=en).
-2. Start watching videos with a more productive, seamless experience!
+2. Start watching videos with a more productive, seamless experience! (Now only one instance of the UI will be injected per page.)
 
 ---
 
@@ -104,6 +104,6 @@ For feedback, suggestions, or issues, please open a [GitHub issue](https://githu
 
 ---
 
-“**Time is the most valuable thing a man can spend.**” — **Theophrastus**
+"**Time is the most valuable thing a man can spend.**" — **Theophrastus**
 
 ---
