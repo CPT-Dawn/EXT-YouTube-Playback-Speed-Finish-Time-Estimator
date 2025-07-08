@@ -2,6 +2,75 @@
   let injected = false;
   let lastUrl = location.href;
 
+  // SETTINGS STATE
+  let userSettings = {
+    timeFormat: "24", // '24' or '12'
+    showSeconds: true,
+  };
+
+  function loadUserSettings(cb) {
+    chrome.storage &&
+      chrome.storage.sync.get(["timeFormat", "showSeconds"], (data) => {
+        userSettings.timeFormat = data.timeFormat || "24";
+        userSettings.showSeconds =
+          data.showSeconds !== undefined ? data.showSeconds : true;
+        if (cb) cb();
+      });
+  }
+
+  // Listen for popup message to update settings live
+  if (chrome && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg && msg.type === "UPDATE_TIME_SETTINGS") {
+        loadUserSettings(() => {
+          // Re-render UI with new settings
+          const video = document.querySelector("video");
+          if (video) updateUI(video);
+          updateMainClock();
+          updatePlaylistSpeedTimes(video, null);
+          updatePlaylistCurrentSpeedInfo(video, null);
+          updatePlaylistEndTimeUI(video, null);
+          updatePlaylistProgressBar(video, null);
+        });
+      }
+    });
+  }
+
+  function formatTimeDisplay(dateOrSeconds, opts = {}) {
+    // Accepts Date or seconds
+    let date;
+    if (typeof dateOrSeconds === "number") {
+      date = new Date(dateOrSeconds * 1000);
+    } else {
+      date = dateOrSeconds;
+    }
+    let hour12 = userSettings.timeFormat === "12";
+    let showSeconds =
+      opts.showSeconds !== undefined
+        ? opts.showSeconds
+        : userSettings.showSeconds;
+    let options = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12,
+    };
+    if (showSeconds) options.second = "2-digit";
+    return date.toLocaleTimeString([], options);
+  }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds < 0)
+      return userSettings.showSeconds ? "00:00:00" : "00:00";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (userSettings.showSeconds) {
+      return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
+    } else {
+      return [h, m].map((v) => v.toString().padStart(2, "0")).join(":");
+    }
+  }
+
   // Check if current page is a valid watch page
   function isValidWatchPage() {
     try {
@@ -12,27 +81,19 @@
     }
   }
 
-  // Format seconds to HH:MM:SS
-  function formatTime(seconds) {
-    if (isNaN(seconds) || seconds < 0) return "00:00:00";
-    const date = new Date(seconds * 1000);
-    return date.toISOString().substr(11, 8);
-  }
-
   // Update main clock
   function updateMainClock() {
-    const mainClockEl = document.getElementById("mainClock");
-    if (mainClockEl) {
-      const now = new Date();
-      mainClockEl.textContent = now.toLocaleTimeString();
+    const mainClock = document.getElementById("mainClock");
+    if (mainClock) {
+      mainClock.textContent = formatTimeDisplay(new Date(), {
+        showSeconds: userSettings.showSeconds,
+      });
     }
   }
 
   // Show/hide playlist section based on playlist detection
   function updatePlaylistVisibility() {
-    const playlistSection = document.getElementById(
-      "yt-playlist-expandable-summary"
-    );
+    const playlistSection = document.getElementById("playlistSection");
     if (playlistSection) {
       const hasPlaylist = isPlaylistVideo();
       const hasPlaylistData = getPlaylistInfo() !== null;
@@ -43,16 +104,20 @@
       if (shouldShow) {
         playlistSection.style.display = "block";
         playlistSection.style.visibility = "visible";
+        playlistSection.style.opacity = "1";
         console.log(
           "YouTube Time Estimator: Playlist detected with data, showing playlist section"
         );
       } else {
         playlistSection.style.display = "none";
         playlistSection.style.visibility = "hidden";
+        playlistSection.style.opacity = "0";
         console.log(
           "YouTube Time Estimator: No playlist or playlist data, hiding playlist section"
         );
       }
+    } else {
+      console.log("YouTube Time Estimator: Playlist section element not found");
     }
   }
 
@@ -66,16 +131,18 @@
     const remaining = (duration - currentTime) / video.playbackRate;
     const finish = new Date(Date.now() + remaining * 1000);
 
-    // Update main clock
     updateMainClock();
 
-    const currentTimeEl = document.getElementById("currentTime");
     const remainingTimeEl = document.getElementById("remainingTime");
     const finishTimeEl = document.getElementById("finishTime");
-    if (currentTimeEl)
-      currentTimeEl.textContent = new Date().toLocaleTimeString();
-    if (remainingTimeEl) remainingTimeEl.textContent = formatTime(remaining);
-    if (finishTimeEl) finishTimeEl.textContent = finish.toLocaleTimeString();
+    if (remainingTimeEl)
+      remainingTimeEl.textContent = formatTime(
+        userSettings.showSeconds ? remaining : Math.round(remaining)
+      );
+    if (finishTimeEl)
+      finishTimeEl.textContent = formatTimeDisplay(finish, {
+        showSeconds: userSettings.showSeconds,
+      });
 
     speeds.forEach((s) => {
       const end = new Date(
@@ -84,7 +151,12 @@
       const el = document.querySelector(
         `#speed-${s.toString().replace(".", "-")}x-time`
       );
-      if (el) el.textContent = formatTime((end.getTime() - Date.now()) / 1000);
+      if (el)
+        el.textContent = formatTime(
+          userSettings.showSeconds
+            ? (end.getTime() - Date.now()) / 1000
+            : Math.round((end.getTime() - Date.now()) / 1000)
+        );
     });
 
     const bar = document.getElementById("progressBar");
@@ -94,66 +166,71 @@
       const btn = document.getElementById(
         `speed-${s.toString().replace(".", "-")}x`
       );
-      if (btn) btn.classList.toggle("selected-speed", s === video.playbackRate);
+      if (btn) btn.classList.toggle("selected", s === video.playbackRate);
     });
   }
 
   // Helper to check if current video is part of a playlist
   function isPlaylistVideo() {
-    // Check for playlist panel
-    const playlistPanel = document.querySelector("ytd-playlist-panel-renderer");
-    if (playlistPanel) return true;
-
-    // Check for queue (watch-next items)
-    const queueItems = document.querySelectorAll("ytd-compact-video-renderer");
-    if (queueItems.length > 0) return true;
-
-    // Check for playlist in URL
+    // Check for playlist in URL (most reliable)
     const url = new URL(window.location.href);
-    if (url.searchParams.has("list")) return true;
+    if (url.searchParams.has("list")) {
+      console.log(
+        "YouTube Time Estimator: Playlist detected via URL parameter"
+      );
+      return true;
+    }
+
+    // Check for playlist panel (official YouTube playlist)
+    const playlistPanel = document.querySelector("ytd-playlist-panel-renderer");
+    if (playlistPanel) {
+      console.log(
+        "YouTube Time Estimator: Playlist detected via playlist panel"
+      );
+      return true;
+    }
 
     // Check for playlist sidebar
     const playlistSidebar = document.querySelector(
       "ytd-playlist-sidebar-renderer"
     );
-    if (playlistSidebar) return true;
+    if (playlistSidebar) {
+      console.log(
+        "YouTube Time Estimator: Playlist detected via playlist sidebar"
+      );
+      return true;
+    }
 
-    // Check for playlist items in the sidebar
+    // Check for playlist items in the sidebar (more specific)
     const playlistItems = document.querySelectorAll(
       "ytd-playlist-panel-video-renderer"
     );
-    if (playlistItems.length > 0) return true;
-
-    // Check for "Up next" section with multiple videos
-    const upNextSection = document.querySelector(
-      "ytd-watch-next-secondary-results-renderer"
-    );
-    if (upNextSection) {
-      const upNextVideos = upNextSection.querySelectorAll(
-        "ytd-compact-video-renderer"
+    if (playlistItems.length > 1) {
+      // Must have more than 1 item to be a playlist
+      console.log(
+        "YouTube Time Estimator: Playlist detected via playlist items",
+        playlistItems.length
       );
-      if (upNextVideos.length > 1) return true;
+      return true;
+    }
+
+    // Check for watch queue (when videos are added to queue)
+    const watchQueue = document.querySelector("ytd-watch-queue-renderer");
+    if (watchQueue) {
+      console.log("YouTube Time Estimator: Playlist detected via watch queue");
+      return true;
     }
 
     // Check for autoplay queue
     const autoplayQueue = document.querySelector("ytd-autoplay-renderer");
-    if (autoplayQueue) return true;
-
-    // Check for watch queue (when videos are added to queue)
-    const watchQueue = document.querySelector("ytd-watch-queue-renderer");
-    if (watchQueue) return true;
-
-    // Check for any video list in the sidebar
-    const videoList = document.querySelector(
-      "ytd-video-secondary-info-renderer"
-    );
-    if (videoList) {
-      const relatedVideos = videoList.querySelectorAll(
-        "ytd-compact-video-renderer"
+    if (autoplayQueue) {
+      console.log(
+        "YouTube Time Estimator: Playlist detected via autoplay queue"
       );
-      if (relatedVideos.length > 0) return true;
+      return true;
     }
 
+    console.log("YouTube Time Estimator: No playlist detected");
     return false;
   }
 
@@ -167,9 +244,7 @@
       item.hasAttribute("selected")
     );
     if (currentIndex === -1) return null;
-    const skipWatched = document.getElementById(
-      "skip-watched-checkbox"
-    )?.checked;
+    const skipWatched = false;
     let durations = items.slice(currentIndex).map((item) => {
       const timeNode = item.querySelector("#text");
       if (!timeNode) return 0;
@@ -314,9 +389,7 @@
       return;
     }
     let completed = 0;
-    const skipWatched = document.getElementById(
-      "skip-watched-checkbox"
-    )?.checked;
+    const skipWatched = false;
     if (!skipWatched) {
       completed = info.currentIndex;
     }
@@ -329,76 +402,62 @@
 
   // Setup expandable sections
   function setupExpandableSections(box) {
-    // Video expandable summary logic
-    const expandable = box.querySelector("#yt-expandable-summary");
-    const expandBtn = box.querySelector("#yt-expand-btn");
-    let expanded = false;
-    function setExpanded(state) {
-      expanded = state;
-      if (expanded) {
-        expandable.classList.add("expanded");
+    // Timing section toggle (includes speed options)
+    const timingSection = box.querySelector(".timing-section");
+    const timingToggle = box.querySelector("#timingToggle");
+    const timingHeader = box.querySelector(".timing-header");
+    let timingExpanded = false;
+
+    function setTimingExpanded(state) {
+      timingExpanded = state;
+      if (timingExpanded) {
+        timingSection.classList.add("expanded");
       } else {
-        expandable.classList.remove("expanded");
+        timingSection.classList.remove("expanded");
       }
     }
-    // Click to toggle
-    if (expandBtn) {
-      expandBtn.addEventListener("click", (e) => {
+
+    if (timingToggle) {
+      timingToggle.addEventListener("click", (e) => {
         e.stopPropagation();
-        setExpanded(!expanded);
+        setTimingExpanded(!timingExpanded);
       });
-    }
-    // Click on card to toggle (except button)
-    const header = box.querySelector("#yt-expandable-header");
-    if (header) {
-      header.addEventListener("click", (e) => {
-        if (e.target === expandBtn) return;
-        setExpanded(!expanded);
-      });
-    }
-    // Hover to expand (desktop only)
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      expandable.addEventListener("mouseenter", () => setExpanded(true));
-      expandable.addEventListener("mouseleave", () => setExpanded(false));
     }
 
-    // Playlist expandable summary logic
-    const playlistExpandable = box.querySelector(
-      "#yt-playlist-expandable-summary"
-    );
-    const playlistExpandBtn = box.querySelector("#yt-playlist-expand-btn");
+    if (timingHeader) {
+      timingHeader.addEventListener("click", (e) => {
+        if (e.target === timingToggle) return;
+        setTimingExpanded(!timingExpanded);
+      });
+    }
+
+    // Playlist section toggle
+    const playlistSection = box.querySelector(".playlist-section");
+    const playlistToggle = box.querySelector("#playlistToggle");
+    const playlistHeader = box.querySelector(".playlist-header");
     let playlistExpanded = false;
+
     function setPlaylistExpanded(state) {
       playlistExpanded = state;
       if (playlistExpanded) {
-        playlistExpandable.classList.add("expanded");
+        playlistSection.classList.add("expanded");
       } else {
-        playlistExpandable.classList.remove("expanded");
+        playlistSection.classList.remove("expanded");
       }
     }
-    // Click to toggle
-    if (playlistExpandBtn) {
-      playlistExpandBtn.addEventListener("click", (e) => {
+
+    if (playlistToggle) {
+      playlistToggle.addEventListener("click", (e) => {
         e.stopPropagation();
         setPlaylistExpanded(!playlistExpanded);
       });
     }
-    // Click on card to toggle (except button)
-    const playlistHeader = box.querySelector("#yt-playlist-expandable-header");
+
     if (playlistHeader) {
       playlistHeader.addEventListener("click", (e) => {
-        if (e.target === playlistExpandBtn) return;
+        if (e.target === playlistToggle) return;
         setPlaylistExpanded(!playlistExpanded);
       });
-    }
-    // Hover to expand (desktop only)
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      playlistExpandable.addEventListener("mouseenter", () =>
-        setPlaylistExpanded(true)
-      );
-      playlistExpandable.addEventListener("mouseleave", () =>
-        setPlaylistExpanded(false)
-      );
     }
   }
 
@@ -406,13 +465,35 @@
   async function injectUI(video) {
     if (injected) return;
 
+    console.log("YouTube Time Estimator: Starting injection...");
+
     // Remove any existing injected UI to prevent duplicates
     document.querySelectorAll(".blank-box").forEach((el) => el.remove());
 
-    const container = document.querySelector(
+    // Try multiple container selectors in case YouTube changed their DOM
+    let container = document.querySelector(
       ".style-scope.yt-chip-cloud-renderer"
     );
-    if (!container || !video) return;
+    if (!container) {
+      container = document.querySelector("#below");
+    }
+    if (!container) {
+      container = document.querySelector("#secondary");
+    }
+    if (!container) {
+      container = document.querySelector("#secondary-inner");
+    }
+    if (!container || !video) {
+      console.log("YouTube Time Estimator: Container or video not found", {
+        container: !!container,
+        video: !!video,
+      });
+      return;
+    }
+
+    console.log(
+      "YouTube Time Estimator: Found container and video, injecting UI..."
+    );
 
     const box = document.createElement("div");
     box.className = "blank-box";
@@ -445,8 +526,9 @@
       setInterval(() => updatePlaylistEndTimeUI(video, null), 1000);
       setInterval(() => updatePlaylistProgressBar(video, null), 1000);
 
-      // Check playlist visibility every 2 seconds
-      setInterval(() => updatePlaylistVisibility(), 2000);
+      // Check playlist visibility immediately and then every second
+      updatePlaylistVisibility();
+      setInterval(() => updatePlaylistVisibility(), 1000);
 
       // Populate playlist-video-select dropdown
       const playlistSelect = box.querySelector("#playlist-video-select");
@@ -513,10 +595,19 @@
 
       setupExpandableSections(box);
 
-      // Initial playlist visibility check
-      updatePlaylistVisibility();
+      // Initial playlist visibility check with delay to ensure DOM is loaded
+      setTimeout(() => {
+        updatePlaylistVisibility();
+        console.log(
+          "YouTube Time Estimator: Initial playlist visibility check completed"
+        );
+      }, 500);
+
+      console.log(
+        "YouTube Time Estimator: UI injection completed successfully!"
+      );
     } catch (e) {
-      console.error("Failed to load content.html", e);
+      console.error("YouTube Time Estimator: Failed to load content.html", e);
     }
 
     // Load styles.css once
@@ -532,14 +623,25 @@
   }
 
   // Wait for video and container elements (timeout 10s)
-  function waitForElements(selectorVideo, selectorContainer, timeout = 10000) {
+  function waitForElements(selectorVideo, timeout = 10000) {
     return new Promise((resolve, reject) => {
       const intervalTime = 100;
       let elapsed = 0;
 
       const interval = setInterval(() => {
         const video = document.querySelector(selectorVideo);
-        const container = document.querySelector(selectorContainer);
+        let container = document.querySelector(
+          ".style-scope.yt-chip-cloud-renderer"
+        );
+        if (!container) {
+          container = document.querySelector("#below");
+        }
+        if (!container) {
+          container = document.querySelector("#secondary");
+        }
+        if (!container) {
+          container = document.querySelector("#secondary-inner");
+        }
 
         if (video && container) {
           clearInterval(interval);
@@ -567,25 +669,26 @@
     if (injected) return;
 
     try {
-      const { video } = await waitForElements(
-        "video",
-        ".style-scope.yt-chip-cloud-renderer"
-      );
+      const { video } = await waitForElements("video");
       injectUI(video);
     } catch {
       // ignore and retry later
     }
   }
 
-  // Detect SPA navigation by polling URL
-  setInterval(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      injected = false;
-      tryInject();
-    }
-  }, 500);
+  // Load settings and start injection
+  loadUserSettings(() => {
+    // Detect SPA navigation by polling URL
+    setInterval(() => {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        injected = false;
+        console.log("YouTube Time Estimator: URL changed, reinjecting...");
+        tryInject();
+      }
+    }, 500);
 
-  // Initial attempt
-  tryInject();
+    // Initial attempt
+    tryInject();
+  });
 })();

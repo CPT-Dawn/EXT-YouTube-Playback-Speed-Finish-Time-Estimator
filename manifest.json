@@ -1,20 +1,37 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Finish Time Estimator",
-  "version": "1.0.1",
-  "description": "Shows estimated video finish time at different playback speeds",
-  "permissions": ["scripting", "tabs"],
-  "host_permissions": ["*://*.youtube.com/*"],
+  "name": "YouTube Playback Speed Finish Time Estimator",
+  "version": "1.0.0",
+  "description": "Estimate when a YouTube video or playlist will finish based on playback speed.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["*://www.youtube.com/*"],
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
   "web_accessible_resources": [
     {
       "resources": ["content.html", "styles.css"],
-      "matches": ["*://*.youtube.com/*"]
+      "matches": ["*://www.youtube.com/*"]
     }
   ],
-  "action": {
-    "default_title": "YouTube Time Estimator"
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

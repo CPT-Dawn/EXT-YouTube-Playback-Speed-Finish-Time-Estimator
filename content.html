@@ -3,154 +3,133 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Video Player Interface</title>
+    <title>YouTube Time Estimator</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="yt-estimator-tab-content">
-      <div class="yt-ambient-bg">
-          <!-- Main Clock -->
-          <div class="main-clock-container">
-            <div class="main-clock-label">Current Time</div>
-            <div class="main-clock" id="mainClock">00:00:00</div>
-          </div>
-          
-          <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
-          </div>
-          <div
-            class="yt-expandable-summary"
-            id="yt-expandable-summary"
-            tabindex="0"
-          >
-            <div
-              class="yt-info-card yt-expandable-header"
-              id="yt-expandable-header"
-            >
-              <div style="flex: 1; text-align: center">
-                <div class="yt-info-label">Time Remaining:</div>
-                <div class="yt-info-value" id="remainingTime">00:00:00</div>
-              </div>
-              <div style="flex: 1; text-align: center">
-                <div class="yt-info-label">Finishing At:</div>
-                <div class="yt-info-value" id="finishTime">00:00:00</div>
-              </div>
-              <button
-                class="yt-expand-btn"
-                id="yt-expand-btn"
-                aria-label="Show speed time selection"
-                tabindex="-1"
-              >
-                ▼
-              </button>
-            </div>
-            <div
-              class="speed-selection yt-expandable-content"
-              id="yt-expandable-content"
-            >
-              <div>Speed Time Selection:</div>
-              <div class="speed-option" id="speed-1x">
-                1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
-              </div>
-              <div class="speed-option" id="speed-1-25x">
-                1.25x:
-                <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
-              </div>
-              <div class="speed-option" id="speed-1-5x">
-                1.5x:
-                <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
-              </div>
-              <div class="speed-option" id="speed-1-75x">
-                1.75x:
-                <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
-              </div>
-              <div class="speed-option" id="speed-2x">
-                2x: <span class="speed-time" id="speed-2x-time">00:00:00</span>
-              </div>
-            </div>
-          </div>
+    <div class="yt-time-estimator">
+      <!-- Main Clock -->
+      <div class="clock-section">
+        <div class="clock-display" id="mainClock">00:00:00</div>
+        <div class="clock-label">Current Time</div>
+      </div>
 
-          <!-- Playlist expandable section -->
-          <div
-            class="yt-expandable-summary"
-            id="yt-playlist-expandable-summary"
-            tabindex="0"
-          >
-            <div
-              class="yt-info-card yt-expandable-header"
-              id="yt-playlist-expandable-header"
-            >
-              <div style="flex: 1; text-align: center">
-                <div class="yt-info-label">Playlist Remaining:</div>
-                <div class="yt-info-value" id="playlist-remaining-time">
-                  00:00:00
-                </div>
+      <!-- Video Progress -->
+      <div class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+      </div>
+
+      <!-- Video Timing Info -->
+      <div class="timing-section">
+        <div class="timing-header">
+          <div class="timing-grid">
+            <div class="timing-item">
+              <div class="timing-label">Time Remaining</div>
+              <div class="timing-value" id="remainingTime">00:00:00</div>
+            </div>
+            <div class="timing-item">
+              <div class="timing-label">Finishing At</div>
+              <div class="timing-value" id="finishTime">00:00:00</div>
+            </div>
+          </div>
+          <div class="timing-toggle" id="timingToggle">
+            <svg viewBox="0 0 24 24" class="toggle-icon">
+              <path d="M7 10l5 5 5-5z" />
+            </svg>
+          </div>
+        </div>
+        <div class="timing-speed-grid" id="timingSpeedGrid">
+          <button class="speed-option" id="speed-1x">
+            <span class="speed-label">1x</span>
+            <span class="speed-time" id="speed-1x-time">00:00:00</span>
+          </button>
+          <button class="speed-option" id="speed-1-25x">
+            <span class="speed-label">1.25x</span>
+            <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
+          </button>
+          <button class="speed-option" id="speed-1-5x">
+            <span class="speed-label">1.5x</span>
+            <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
+          </button>
+          <button class="speed-option" id="speed-1-75x">
+            <span class="speed-label">1.75x</span>
+            <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
+          </button>
+          <button class="speed-option" id="speed-2x">
+            <span class="speed-label">2x</span>
+            <span class="speed-time" id="speed-2x-time">00:00:00</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Playlist Section -->
+      <div class="playlist-section" id="playlistSection">
+        <div class="playlist-header">
+          <div class="playlist-timing-grid">
+            <div class="timing-item">
+              <div class="timing-label">Playlist Remaining</div>
+              <div class="timing-value" id="playlist-remaining-time">
+                00:00:00
               </div>
-              <div style="flex: 1; text-align: center">
-                <div class="yt-info-label">Playlist Finishing At:</div>
-                <div class="yt-info-value" id="playlist-finishing-time">
-                  --:--:--
-                </div>
+            </div>
+            <div class="timing-item">
+              <div class="timing-label">Playlist Finishing At</div>
+              <div class="timing-value" id="playlist-finishing-time">
+                --:--:--
               </div>
-              <button
-                class="yt-expand-btn"
-                id="yt-playlist-expand-btn"
-                aria-label="Show playlist controls"
-                tabindex="-1"
+            </div>
+          </div>
+          <div class="playlist-toggle" id="playlistToggle">
+            <svg viewBox="0 0 24 24" class="toggle-icon">
+              <path d="M7 10l5 5 5-5z" />
+            </svg>
+          </div>
+        </div>
+        <div class="playlist-content" id="playlistContent">
+          <div class="playlist-controls">
+            <label for="playlist-video-select">Calculate up to:</label>
+            <select id="playlist-video-select" class="playlist-select">
+              <option value="end">End</option>
+            </select>
+          </div>
+          <div class="playlist-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="playlistProgressBar"></div>
+            </div>
+          </div>
+          <div class="playlist-speed-grid">
+            <button class="speed-option" id="playlist-speed-1x">
+              <span class="speed-label">1x</span>
+              <span class="speed-time" id="playlist-speed-1x-time"
+                >00:00:00</span
               >
-                ▼
-              </button>
-            </div>
-            <div
-              class="yt-expandable-content"
-              id="yt-playlist-expandable-content"
-            >
-              <div class="playlist-controls-row">
-                <label for="playlist-video-select"
-                  >Calculate up to video #:</label
-                >
-                <select
-                  id="playlist-video-select"
-                  class="playlist-video-select"
-                ></select>
-              </div>
-              <div class="playlist-progress-bar">
-                <div class="playlist-progress" id="playlistProgressBar"></div>
-              </div>
-              <div class="speed-selection playlist-speed-selection">
-                <div>Playlist Speed Time Selection:</div>
-                <div class="speed-option" id="playlist-speed-1x">
-                  1x:
-                  <span class="speed-time" id="playlist-speed-1x-time"
-                    >00:00:00</span
-                  >
-                </div>
-                <div class="speed-option" id="playlist-speed-1-25x">
-                  1.25x:
-                  <span class="speed-time" id="playlist-speed-1-25x-time"
-                    >00:00:00</span
-                  >
-                </div>
-                <div class="speed-option" id="playlist-speed-1-5x">
-                  1.5x:
-                  <span class="speed-time" id="playlist-speed-1-5x-time"
-                    >00:00:00</span
-                  >
-                </div>
-                <div class="speed-option" id="playlist-speed-1-75x">
-                  1.75x:
-                  <span class="speed-time" id="playlist-speed-1-75x-time"
-                    >00:00:00</span
-                  >
-                </div>
-                <div class="speed-option" id="playlist-speed-2x">
-                  2x:
-                  <span class="speed-time" id="playlist-speed-2x-time"
-                    >00:00:00</span
-                  >
-                </div>
-              </div>
-            </div>
+            </button>
+            <button class="speed-option" id="playlist-speed-1-25x">
+              <span class="speed-label">1.25x</span>
+              <span class="speed-time" id="playlist-speed-1-25x-time"
+                >00:00:00</span
+              >
+            </button>
+            <button class="speed-option" id="playlist-speed-1-5x">
+              <span class="speed-label">1.5x</span>
+              <span class="speed-time" id="playlist-speed-1-5x-time"
+                >00:00:00</span
+              >
+            </button>
+            <button class="speed-option" id="playlist-speed-1-75x">
+              <span class="speed-label">1.75x</span>
+              <span class="speed-time" id="playlist-speed-1-75x-time"
+                >00:00:00</span
+              >
+            </button>
+            <button class="speed-option" id="playlist-speed-2x">
+              <span class="speed-label">2x</span>
+              <span class="speed-time" id="playlist-speed-2x-time"
+                >00:00:00</span
+              >
+            </button>
           </div>
         </div>
       </div>

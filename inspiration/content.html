@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Player Interface</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="blank-box-content">
+        <!-- Current time display -->
+        <div class="time" id="currentTime"></div>
+
+        <!-- Progress bar displaying current progress in video -->
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+
+        <!-- Time information display for remaining time and finish time -->
+        <div class="time-info">
+            <div class="time-box" id="remainingTimeBox">
+                <div>Time Remaining:</div>
+                <div id="remainingTime">00:00:00</div>
+            </div>
+            <div class="time-box" id="finishTimeBox">
+                <div>Finishing At:</div>
+                <div id="finishTime">00:00:00</div>
+            </div>
+        </div>
+
+        <!-- Speed selection with dynamically updating finish times -->
+        <div class="speed-selection">
+            <div>Speed Time Selection:</div>
+            <div class="speed-option" id="speed-1x">
+                1x: <span class="speed-time" id="speed-1x-time">00:00:00</span>
+            </div>
+            <div class="speed-option" id="speed-1-25x">
+                1.25x: <span class="speed-time" id="speed-1-25x-time">00:00:00</span>
+            </div>
+            <div class="speed-option" id="speed-1-5x">
+                1.5x: <span class="speed-time" id="speed-1-5x-time">00:00:00</span>
+            </div>
+            <div class="speed-option" id="speed-1-75x">
+                1.75x: <span class="speed-time" id="speed-1-75x-time">00:00:00</span>
+            </div>
+            <div class="speed-option" id="speed-2x">
+                2x: <span class="speed-time" id="speed-2x-time">00:00:00</span>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

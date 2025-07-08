@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Estimator Settings</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="yt-popup-root">
+      <header class="yt-popup-header">
+        <svg class="yt-logo" viewBox="0 0 90 20" width="90" height="20">
+          <rect x="0" y="2" width="30" height="16" rx="4" fill="#ff0000" />
+          <polygon points="12,7 22,10 12,13" fill="#fff" />
+        </svg>
+        <span class="yt-popup-title">Time Estimator Settings</span>
+      </header>
+      <form id="settingsForm" class="yt-popup-form">
+        <section class="yt-popup-section">
+          <label class="yt-popup-label">Time Format</label>
+          <div class="yt-popup-radio-group">
+            <label class="yt-popup-radio">
+              <input type="radio" name="timeFormat" value="24" />
+              <span class="yt-popup-radio-custom"></span>
+              24-hour
+            </label>
+            <label class="yt-popup-radio">
+              <input type="radio" name="timeFormat" value="12" />
+              <span class="yt-popup-radio-custom"></span>
+              12-hour (AM/PM)
+            </label>
+          </div>
+        </section>
+        <section class="yt-popup-section">
+          <label class="yt-popup-label">Show Seconds</label>
+          <label class="yt-popup-switch">
+            <input type="checkbox" id="showSeconds" />
+            <span class="yt-popup-slider"></span>
+          </label>
+        </section>
+        <button type="submit" class="yt-popup-save">Save Settings</button>
+      </form>
+      <footer class="yt-popup-footer">
+        <span>&copy; YouTube Time Estimator</span>
+      </footer>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
