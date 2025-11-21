@@ -1,119 +1,138 @@
+/* Ambient Mode / Native YouTube Look */
 body {
   font-family: "Roboto", Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #121212;
 }
 
-.blank-box-content {
+#yt-time-manager-container {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: rgba(15, 15, 15, 0.8); /* Dark background with transparency */
+  backdrop-filter: blur(10px); /* Glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f1f1;
+  padding: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  border-radius: 10px;
-  background-color: rgba(17, 17, 17, 0.11);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  padding: 10px 18px;
-  gap: 18px;
-  max-width: 600px;
+  gap: 12px;
+  transition: opacity 0.3s ease;
 }
 
-#currentTime {
-  background-color: rgba(49, 49, 49, 0.7);
-  color: #ffffff;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 20px;
-  display: inline-block;
-  text-align: center;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background-color: #d0d0d0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-#progressBar {
-  height: 100%;
-  background-color: #ff0000;
-  border-radius: 4px;
-  transition: width 0.1s;
-}
-
-.time-info {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  width: 100%;
-  justify-content: space-around;
-}
-
-.time-box {
-  background-color: rgba(49, 49, 49, 0.7);
-  color: rgb(170, 170, 170);
-  padding: 10px 20px;
-  border-radius: 4px;
-  text-align: center;
-  flex: 1;
-  max-width: 45%;
-  font-size: 14px;
-}
-
-#remainingTimeBox,
-#finishTimeBox {
-  font-size: 12px;
-}
-
-#remainingTime,
-#finishTime {
-  margin-top: 3px;
-  font-size: 15px;
-  color: rgb(241, 241, 241);
-  font-weight: bold;
-}
-
-.speed-selection {
-  background-color: rgba(49, 49, 49, 0.7);
-  font-size: 12px;
-  color: rgb(170, 170, 170);
-  padding: 16px;
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.speed-selection > div:first-of-type {
-  margin-bottom: 12px;
-  font-weight: bold;
-}
-
-.speed-option {
-  color: rgb(241, 241, 241);
-  font-size: 15px;
-  margin-bottom: 5px;
+/* Header Section */
+.yt-tm-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 20px;
-  border-radius: 10px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
 }
 
-.speed-option:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: scale(1.05);
+.yt-tm-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
 }
 
-.speed-time {
-  background-color: #333;
-  padding: 2px 4px;
+.yt-tm-current-speed {
+  font-size: 12px;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
   border-radius: 4px;
 }
 
-.selected-speed {
-  border: 2px solid #ff0000;
-  border-radius: 20px;
+/* Data Grid */
+.yt-tm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Speed, Remaining, Finishes At */
+  gap: 8px;
+  align-items: center;
 }
+
+.yt-tm-row {
+  display: contents; /* Allows children to fit into the grid */
+}
+
+.yt-tm-cell {
+  padding: 6px 8px;
+  text-align: left;
+  color: #aaa;
+}
+
+.yt-tm-cell.header {
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yt-tm-cell.speed {
+  color: #f1f1f1;
+  font-weight: 500;
+}
+
+.yt-tm-cell.highlight {
+  color: #ff0000; /* Accent color */
+  font-weight: bold;
+}
+
+.yt-tm-row.current-speed .yt-tm-cell {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-radius: 4px;
+}
+
+/* Chapter & Playlist Section */
+.yt-tm-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.yt-tm-section-title {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.yt-tm-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.yt-tm-label {
+  color: #ddd;
+}
+
+.yt-tm-value {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.yt-tm-progress-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.yt-tm-progress-bar {
+  height: 100%;
+  background: #ff0000;
+  width: 0%;
+  transition: width 0.5s linear;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+

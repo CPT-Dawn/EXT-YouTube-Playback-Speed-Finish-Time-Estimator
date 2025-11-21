@@ -1,29 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Finish Time Estimator",
-  "version": "1.0.1",
-  "description": "Shows estimated video finish time at different playback speeds",
+  "name": "YouTube Time Manager",
+  "version": "2.0.0",
+  "description": "Advanced time management suite for YouTube: Remaining time, Finishes at, Playlist calc, and more.",
   "permissions": ["scripting", "tabs"],
   "host_permissions": ["*://*.youtube.com/*"],
   "background": {
     "service_worker": "background.js"
   },
-"content_scripts": [
-  {
-    "matches": ["*://*.youtube.com/*"],
-    "js": ["content.js"],
-    "run_at": "document_idle"
-  }
-],
-
-
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
   "web_accessible_resources": [
     {
-      "resources": ["content.html", "styles.css"],
+      "resources": ["styles.css"],
       "matches": ["*://*.youtube.com/*"]
     }
   ],
   "action": {
-    "default_title": "YouTube Time Estimator"
+    "default_title": "YouTube Time Manager"
   }
 }
