@@ -129,6 +129,13 @@
       let elapsed = 0;
 
       const interval = setInterval(() => {
+        // Stop if we are no longer on a valid watch page
+        if (!isValidWatchPage()) {
+          clearInterval(interval);
+          reject(new Error("Not a watch page"));
+          return;
+        }
+
         const video = document.querySelector(selectorVideo);
         let container = null;
         
@@ -164,7 +171,10 @@
 
     try {
       const { video, container } = await waitForElements("video");
-      injectUI(video, container);
+      // Double check before injecting
+      if (isValidWatchPage()) {
+        injectUI(video, container);
+      }
     } catch {
       // ignore and retry later
     }
