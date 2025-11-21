@@ -60,7 +60,6 @@
 
   // Selectors to try for injection (in order of preference)
   const CONTAINER_SELECTORS = [
-    ".style-scope.yt-chip-cloud-renderer",
     "ytd-watch-next-secondary-results-renderer",
     "#secondary",
     "yt-carousel-title-view-model", // For live streams
