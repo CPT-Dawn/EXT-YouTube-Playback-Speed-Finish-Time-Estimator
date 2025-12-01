@@ -22,7 +22,7 @@
 
   function getFinishTime(secondsFromNow) {
     const date = new Date(Date.now() + secondsFromNow * 1000);
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: false });
   }
 
   function parseDuration(durationStr) {
@@ -36,87 +36,122 @@
   // --- 2. SCRAPERS ---
 
   function getChapterInfo(video) {
-    // 1. Get Chapter Title
-    const chapterTitleEl = document.querySelector('.ytp-chapter-title-content');
-    let title = null;
-    if (chapterTitleEl && chapterTitleEl.textContent) {
-        title = chapterTitleEl.textContent;
-    }
-
     const duration = video.duration;
     const currentTime = video.currentTime;
     if (isNaN(duration) || isNaN(currentTime)) return null;
 
-    let endTime = null;
+    let chapters = [];
 
-    // 2. Strategy A: Visual Markers (Preferred)
-    let markers = Array.from(document.querySelectorAll('.ytp-chapter-marker'));
-    
-    if (markers.length > 0) {
-        const chapterTimes = markers.map(marker => {
-            let pct = parseFloat(marker.style.left);
-            if (isNaN(pct)) pct = parseFloat(marker.style.paddingLeft); 
-            return (pct / 100) * duration;
-        }).sort((a, b) => a - b);
-
-        for (const time of chapterTimes) {
-            if (time > currentTime + 1) {
-                endTime = time;
-                break;
+    // Strategy 1: Macro Markers List (Most reliable if available)
+    // This is the "View all" chapters list, often present in the DOM even if not visible
+    const macroMarkers = document.querySelectorAll('ytd-macro-markers-list-item-renderer');
+    if (macroMarkers.length > 0) {
+        macroMarkers.forEach(marker => {
+            const timeStr = marker.querySelector('#time')?.textContent?.trim();
+            const title = marker.querySelector('#title')?.textContent?.trim();
+            if (timeStr) {
+                const time = parseDuration(timeStr);
+                chapters.push({ time, title });
             }
-        }
-        if (endTime === null) endTime = duration; // Last chapter
+        });
     }
 
-    // 3. Strategy B: Description Timestamps (Fallback)
-    if (endTime === null) {
-        // Look for description text
+    // Strategy 2: Visual Markers (Progress Bar)
+    if (chapters.length === 0) {
+        const markers = Array.from(document.querySelectorAll('.ytp-chapter-marker'));
+        if (markers.length > 0) {
+            chapters = markers.map(marker => {
+                let pct = parseFloat(marker.style.left);
+                if (isNaN(pct)) pct = parseFloat(marker.style.paddingLeft);
+                return {
+                    time: (pct / 100) * duration,
+                    title: null // Title is hard to get from marker alone without hover
+                };
+            }).sort((a, b) => a.time - b.time);
+        }
+    }
+
+    // Strategy 3: Description Timestamps (Fallback)
+    if (chapters.length === 0) {
         const descriptionEl = document.querySelector('#description-inline-expander') || document.querySelector('#description');
         if (descriptionEl) {
             const text = descriptionEl.innerText;
-            // Regex for timestamps: H:MM:SS or MM:SS or M:SS
-            // We look for lines like "0:00 Intro"
-            const regex = /(?:(\d{1,2}):)?(\d{1,2}):(\d{2})/g;
+            // Regex for timestamps: H:MM:SS or MM:SS or M:SS followed by potential title
+            const regex = /(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.*)/g;
             let match;
-            const timestamps = [];
             
             while ((match = regex.exec(text)) !== null) {
                 const h = match[1] ? parseInt(match[1]) : 0;
                 const m = parseInt(match[2]);
                 const s = parseInt(match[3]);
+                const title = match[4]?.trim().split('\n')[0]; // Take first line of remaining text
                 const seconds = h * 3600 + m * 60 + s;
                 if (seconds < duration) {
-                    timestamps.push(seconds);
+                    chapters.push({ time: seconds, title });
                 }
-            }
-            
-            if (timestamps.length > 0) {
-                timestamps.sort((a, b) => a - b);
-                // Find next timestamp
-                for (const time of timestamps) {
-                    if (time > currentTime + 1) {
-                        endTime = time;
-                        break;
-                    }
-                }
-                if (endTime === null) endTime = duration; // Last chapter
-                
-                // If we found timestamps but no title, try to guess title? 
-                // Too complex for now, stick to "Current Chapter" if title missing.
             }
         }
     }
 
-    // 4. Final Calculation
-    if (endTime !== null) {
-        return {
-            title: title || "Current Chapter",
-            remaining: endTime - currentTime,
-            endTime: endTime
-        };
+    // Sort chapters by time
+    chapters.sort((a, b) => a.time - b.time);
+
+    // Filter out duplicates or invalid times
+    chapters = chapters.filter((c, index, self) => {
+        return c.time >= 0 && c.time < duration && (index === 0 || c.time > self[index-1].time + 1);
+    });
+
+    if (chapters.length === 0) return null;
+
+    // Find current chapter
+    let currentChapter = null;
+    let nextChapterTime = duration;
+
+    for (let i = 0; i < chapters.length; i++) {
+        if (currentTime >= chapters[i].time) {
+            currentChapter = chapters[i];
+            nextChapterTime = (i + 1 < chapters.length) ? chapters[i + 1].time : duration;
+        } else {
+            break;
+        }
     }
 
-    return null;
+    // If we are before the first chapter (rare, but possible if first chapter starts at > 0:00)
+    if (!currentChapter) {
+        // If first chapter starts at 0, we should have found it. 
+        // If it starts later, treat 0->first as "Intro" or similar?
+        // For now, let's just return null or the first chapter as upcoming?
+        // Better: assume start is 0.
+        if (chapters[0].time > 0) {
+             currentChapter = { time: 0, title: "Intro" };
+             nextChapterTime = chapters[0].time;
+        } else {
+            return null;
+        }
+    }
+
+    // Try to get a better title if we used visual markers (Strategy 2)
+    if (!currentChapter.title) {
+        const hoverTitle = document.querySelector('.ytp-chapter-title-content')?.textContent;
+        if (hoverTitle) {
+            // This title might be for the *hovered* chapter, not current. 
+            // Only use it if we are sure? 
+            // Actually, ytp-chapter-title-content updates on hover. 
+            // Safest is "Chapter X"
+            currentChapter.title = "Chapter"; 
+        } else {
+            currentChapter.title = "Chapter";
+        }
+    }
+
+    return {
+        title: currentChapter.title,
+        remaining: nextChapterTime - currentTime,
+        endTime: nextChapterTime,
+        startTime: currentChapter.time,
+        duration: nextChapterTime - currentChapter.time,
+        progress: (currentTime - currentChapter.time) / (nextChapterTime - currentChapter.time)
+    };
   }
 
   function getPlaylistInfo(video) {
@@ -130,34 +165,39 @@
     let totalRemaining = 0;
     let count = 0;
     let foundCurrent = false;
+    let totalDuration = 0;
+    let currentElapsed = 0;
     
     // Iterate through all loaded items
     const items = playlistPanel.querySelectorAll('ytd-playlist-panel-video-renderer');
     for (const item of items) {
+        const durationStr = item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim();
+        const itemDuration = parseDuration(durationStr);
+        totalDuration += itemDuration;
+
         if (item === currentVideoItem) {
             foundCurrent = true;
-            // Add remaining time of current video
-            const durationStr = item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim();
-             // Note: Playlist items show total duration, not remaining. 
-             // So for current video, we use the video element's remaining time.
-             if (video && !isNaN(video.duration) && !isNaN(video.currentTime)) {
+            if (video && !isNaN(video.duration) && !isNaN(video.currentTime)) {
                  totalRemaining += (video.duration - video.currentTime);
-             }
+                 currentElapsed += video.currentTime;
+            }
              continue;
         }
         
         if (foundCurrent) {
-            const durationStr = item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim();
             if (durationStr) {
-                totalRemaining += parseDuration(durationStr);
+                totalRemaining += itemDuration;
                 count++;
             }
+        } else {
+            currentElapsed += itemDuration;
         }
     }
 
     return {
         videosRemaining: count,
-        totalSeconds: totalRemaining
+        totalSeconds: totalRemaining,
+        progress: totalDuration > 0 ? (currentElapsed / totalDuration) : 0
     };
   }
 
@@ -166,46 +206,113 @@
   function createUI() {
     const container = document.createElement('div');
     container.id = 'yt-time-manager-container';
+    
+    // SVG Icons
+    const settingsIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+    const videoIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H5v-2h6v2zm0-4H5V7h6v2zm8 4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>`; // Simplified video icon
+    const chapterIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>`; // Text/Chapter icon
+    const playlistIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>`;
+
     container.innerHTML = `
-      <div class="yt-tm-header">
-        <span class="yt-tm-title">Time Manager</span>
-        <span id="yt-tm-current-speed" class="yt-tm-current-speed">1.0x</span>
-      </div>
-      
-      <div class="yt-tm-grid">
-        <div class="yt-tm-cell header">Speed</div>
-        <div class="yt-tm-cell header">Remaining</div>
-        <div class="yt-tm-cell header">Finishes At</div>
-        
-        <!-- Rows will be injected here -->
-        <div id="yt-tm-rows" class="yt-tm-row-group" style="display: contents;"></div>
+      <!-- Header -->
+      <div class="dt-header">
+        <div class="dt-speed-control">
+            <div class="dt-speed-wrapper">
+                <span class="dt-speed-label">Cur. Speed:</span>
+                <div class="dt-speed-actions">
+                    <span id="dt-speed-down" class="dt-speed-btn">−</span>
+                    <span id="dt-speed-val">1.0</span>
+                    <span id="dt-speed-up" class="dt-speed-btn">+</span>
+                </div>
+            </div>
+        </div>
+        <div id="dt-current-clock" class="dt-main-clock">--:--:--</div>
+        <div class="dt-settings-icon">${settingsIcon}</div>
       </div>
 
-      <div id="yt-tm-playlist-section" class="yt-tm-section hidden">
-        <div class="yt-tm-section-title">Playlist Remaining</div>
-        <div class="yt-tm-info-row">
-            <span class="yt-tm-label">Time (+<span id="yt-tm-playlist-count">0</span> videos)</span>
-            <span id="yt-tm-playlist-time" class="yt-tm-value">--:--</span>
+      <!-- Video Section -->
+      <div class="dt-section-card">
+        <div class="dt-section-header dt-color-video">
+            <span class="dt-icon">${videoIcon}</span>
+            <span>Video</span>
+            <div class="dt-progress-track">
+                <div id="dt-video-progress" class="dt-progress-fill dt-bg-video"></div>
+            </div>
         </div>
-        <div class="yt-tm-info-row">
-             <span class="yt-tm-label">Finishes At</span>
-             <span id="yt-tm-playlist-finish" class="yt-tm-value">--:--</span>
+        <div class="dt-stats-row">
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Time Remaining:</span>
+                <span id="dt-video-remaining" class="dt-stat-value">--:--</span>
+            </div>
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Finishing At:</span>
+                <span id="dt-video-finish" class="dt-stat-value">--:--</span>
+            </div>
         </div>
       </div>
 
-      <div id="yt-tm-chapter-section" class="yt-tm-section hidden">
-        <div class="yt-tm-section-title">Chapter Remaining</div>
-        <div class="yt-tm-info-row">
-            <span id="yt-tm-chapter-title" class="yt-tm-label" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Current Chapter</span>
-            <span id="yt-tm-chapter-time" class="yt-tm-value">--:--</span>
+      <!-- Chapter Section -->
+      <div id="dt-chapter-section" class="dt-section-card hidden">
+        <div class="dt-section-header dt-color-chapter">
+            <span class="dt-icon">${chapterIcon}</span>
+            <span id="dt-chapter-name">Chapter</span>
+            <div class="dt-progress-track">
+                <div id="dt-chapter-progress" class="dt-progress-fill dt-bg-chapter"></div>
+            </div>
+        </div>
+        <div class="dt-stats-row">
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Time Remaining:</span>
+                <span id="dt-chapter-remaining" class="dt-stat-value">--:--</span>
+            </div>
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Finishing At:</span>
+                <span id="dt-chapter-finish" class="dt-stat-value">--:--</span>
+            </div>
         </div>
       </div>
 
-      <div class="yt-tm-progress-container">
-        <div id="yt-tm-progress-bar" class="yt-tm-progress-bar"></div>
+      <!-- Playlist Section -->
+      <div id="dt-playlist-section" class="dt-section-card hidden">
+        <div class="dt-section-header dt-color-playlist">
+            <span class="dt-icon">${playlistIcon}</span>
+            <span>Playlist</span>
+            <div class="dt-progress-track">
+                <div id="dt-playlist-progress" class="dt-progress-fill dt-bg-playlist"></div>
+            </div>
+        </div>
+        <div class="dt-stats-row">
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Time Remaining:</span>
+                <span id="dt-playlist-remaining" class="dt-stat-value">--:--</span>
+            </div>
+            <div class="dt-stat-box">
+                <span class="dt-stat-label">Finishing At:</span>
+                <span id="dt-playlist-finish" class="dt-stat-value">--:--</span>
+            </div>
+        </div>
       </div>
     `;
+
+    // Add Event Listeners
+    const speedDown = container.querySelector('#dt-speed-down');
+    const speedUp = container.querySelector('#dt-speed-up');
+
+    speedDown.addEventListener('click', () => changeSpeed(-0.25));
+    speedUp.addEventListener('click', () => changeSpeed(0.25));
+
     return container;
+  }
+
+  function changeSpeed(delta) {
+    const video = document.querySelector('video');
+    if (video) {
+        let newRate = video.playbackRate + delta;
+        if (newRate < 0.25) newRate = 0.25;
+        if (newRate > 16) newRate = 16;
+        video.playbackRate = newRate;
+        updateUI(video); // Immediate update
+    }
   }
 
   function updateUI(video) {
@@ -218,93 +325,71 @@
 
     if (isNaN(duration) || duration <= 0) return;
 
-    const remainingRaw = duration - currentTime;
+    // 1. Update Header
+    document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
+    document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+    // 2. Update Video Section
+    const videoRemaining = (duration - currentTime) / playbackRate;
+    document.getElementById('dt-video-remaining').textContent = formatTimeShort(videoRemaining);
+    document.getElementById('dt-video-finish').textContent = getFinishTime(videoRemaining);
     
-    // Update Header Speed
-    document.getElementById('yt-tm-current-speed').textContent = `${playbackRate}x`;
+    const videoProgress = (currentTime / duration) * 100;
+    document.getElementById('dt-video-progress').style.width = `${videoProgress}%`;
 
-    // Update Progress Bar
-    const progressPercent = (currentTime / duration) * 100;
-    document.getElementById('yt-tm-progress-bar').style.width = `${progressPercent}%`;
-
-    // Generate Rows for Speeds
-    const speeds = [1, 1.25, 1.5, 1.75, 2];
-    // Ensure current speed is in the list if it's custom
-    if (!speeds.includes(playbackRate)) {
-        speeds.push(playbackRate);
-        speeds.sort((a, b) => a - b);
-    }
-
-    const rowsContainer = document.getElementById('yt-tm-rows');
-    rowsContainer.innerHTML = '';
-
-    speeds.forEach(speed => {
-        const adjustedRemaining = remainingRaw / speed;
-        const finishTime = getFinishTime(adjustedRemaining);
-        const isCurrent = speed === playbackRate;
-
-        const row = document.createElement('div');
-        row.className = `yt-tm-row ${isCurrent ? 'current-speed' : ''}`;
-        row.innerHTML = `
-            <div class="yt-tm-cell speed ${isCurrent ? 'highlight' : ''}">${speed}x</div>
-            <div class="yt-tm-cell">${formatTimeShort(adjustedRemaining)}</div>
-            <div class="yt-tm-cell">${finishTime}</div>
-        `;
-        rowsContainer.appendChild(row);
-    });
-
-    // Update Playlist Info
-    const playlistInfo = getPlaylistInfo(video);
-    const playlistSection = document.getElementById('yt-tm-playlist-section');
-    
-    if (playlistInfo && playlistInfo.videosRemaining > 0) {
-        playlistSection.classList.remove('hidden');
-        document.getElementById('yt-tm-playlist-count').textContent = playlistInfo.videosRemaining;
-        
-        const playlistRemainingAdjusted = playlistInfo.totalSeconds / playbackRate;
-        document.getElementById('yt-tm-playlist-time').textContent = formatTimeShort(playlistRemainingAdjusted);
-        document.getElementById('yt-tm-playlist-finish').textContent = getFinishTime(playlistRemainingAdjusted);
-    } else {
-        playlistSection.classList.add('hidden');
-    }
-
-    // Update Chapter Info
+    // 3. Update Chapter Section
     const chapterInfo = getChapterInfo(video);
-    const chapterSection = document.getElementById('yt-tm-chapter-section');
-
-    if (chapterInfo && chapterInfo.remaining !== null && chapterInfo.remaining > 0) {
+    const chapterSection = document.getElementById('dt-chapter-section');
+    
+    if (chapterInfo && chapterInfo.remaining > 0) {
         chapterSection.classList.remove('hidden');
-        document.getElementById('yt-tm-chapter-title').textContent = chapterInfo.title;
+        document.getElementById('dt-chapter-name').textContent = chapterInfo.title;
         
-        const chapterRemainingAdjusted = chapterInfo.remaining / playbackRate;
-        document.getElementById('yt-tm-chapter-time').textContent = formatTimeShort(chapterRemainingAdjusted);
+        const chapterRemaining = chapterInfo.remaining / playbackRate;
+        document.getElementById('dt-chapter-remaining').textContent = formatTimeShort(chapterRemaining);
+        document.getElementById('dt-chapter-finish').textContent = getFinishTime(chapterRemaining);
+        
+        const chapterProgress = Math.max(0, Math.min(100, chapterInfo.progress * 100));
+        document.getElementById('dt-chapter-progress').style.width = `${chapterProgress}%`;
     } else {
         chapterSection.classList.add('hidden');
+    }
+
+    // 4. Update Playlist Section
+    const playlistInfo = getPlaylistInfo(video);
+    const playlistSection = document.getElementById('dt-playlist-section');
+
+    if (playlistInfo && playlistInfo.videosRemaining > 0) {
+        playlistSection.classList.remove('hidden');
+        
+        const playlistRemaining = playlistInfo.totalSeconds / playbackRate;
+        document.getElementById('dt-playlist-remaining').textContent = formatTimeShort(playlistRemaining);
+        document.getElementById('dt-playlist-finish').textContent = getFinishTime(playlistRemaining);
+
+        const playlistProgress = Math.max(0, Math.min(100, playlistInfo.progress * 100));
+        document.getElementById('dt-playlist-progress').style.width = `${playlistProgress}%`;
+    } else {
+        playlistSection.classList.add('hidden');
     }
   }
 
   // --- 4. INJECTION LOGIC ---
 
   async function injectUI(video, container) {
-    // Check for existing container and remove it if it looks broken (optional, but safer to just check existence)
     const existing = document.getElementById('yt-time-manager-container');
-    if (existing) {
-        return; // Already injected
-    }
+    if (existing) return;
 
     const ui = createUI();
     
-    // Inject above the container (Secondary column)
     if (container.id === 'secondary') {
         container.prepend(ui);
     } else {
         container.parentNode.insertBefore(ui, container);
     }
 
-    // Start update loop
     if (updateInterval) clearInterval(updateInterval);
     updateInterval = setInterval(() => updateUI(video), 1000);
-    updateUI(video); // Initial update
+    updateUI(video);
 
     injected = true;
   }
@@ -321,7 +406,6 @@
   // --- 5. OBSERVERS & INIT ---
 
   function init() {
-    // Observer for page navigation (SPA)
     const observer = new MutationObserver((mutations) => {
         if (location.href !== lastUrl) {
             lastUrl = location.href;
@@ -330,13 +414,10 @@
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
-    
-    // Initial check
     handleNavigation();
   }
 
   async function handleNavigation() {
-    // Cleanup existing
     const existing = document.getElementById('yt-time-manager-container');
     if (existing) existing.remove();
     if (updateInterval) clearInterval(updateInterval);
@@ -344,7 +425,6 @@
 
     if (!isValidWatchPage()) return;
 
-    // Wait for elements
     const video = await waitForElement('video');
     const container = await waitForElement('#secondary, ytd-watch-next-secondary-results-renderer');
 
@@ -375,7 +455,6 @@
     });
   }
 
-  // Start
   init();
 
 })();

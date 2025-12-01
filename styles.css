@@ -1,138 +1,188 @@
-/* Ambient Mode / Native YouTube Look */
-body {
-  font-family: "Roboto", Arial, sans-serif;
+/* Chrono Dashboard Theme - Redesign */
+:root {
+  --dt-bg: #181818; /* Darker background */
+  --dt-card-bg: #212121; /* Slightly lighter card bg */
+  --dt-text-main: #ffffff;
+  --dt-text-muted: #aaaaaa;
+  
+  /* Section Colors */
+  --dt-color-video: #ff0000; /* Red */
+  --dt-color-chapter: #00ff00; /* Green */
+  --dt-color-playlist: #0099ff; /* Blue */
+  
+  --dt-font-main: "Roboto", sans-serif;
+  --dt-radius: 12px;
+  --dt-radius-sm: 8px;
 }
 
 #yt-time-manager-container {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  background: rgba(15, 15, 15, 0.8); /* Dark background with transparency */
-  backdrop-filter: blur(10px); /* Glass effect */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f1f1f1;
+  font-family: var(--dt-font-main);
+  background: var(--dt-bg);
+  border-radius: var(--dt-radius);
   padding: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  font-size: 14px;
+  margin-bottom: 20px;
+  color: var(--dt-text-main);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: opacity 0.3s ease;
+  gap: 16px;
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
 }
 
-/* Header Section */
-.yt-tm-header {
+/* --- Header Section --- */
+.dt-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
-  margin-bottom: 4px;
 }
 
-.yt-tm-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #fff;
-}
-
-.yt-tm-current-speed {
-  font-size: 12px;
-  color: #aaa;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-/* Data Grid */
-.yt-tm-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Speed, Remaining, Finishes At */
+/* Speed Control */
+.dt-speed-control {
+  background: var(--dt-card-bg);
+  border-radius: var(--dt-radius-sm);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
   gap: 8px;
-  align-items: center;
 }
 
-.yt-tm-row {
-  display: contents; /* Allows children to fit into the grid */
+.dt-speed-label {
+    font-size: 10px;
+    color: var(--dt-text-muted);
+    margin-bottom: 2px;
 }
 
-.yt-tm-cell {
-  padding: 6px 8px;
-  text-align: left;
-  color: #aaa;
+.dt-speed-wrapper {
+    display: flex;
+    flex-direction: column;
 }
 
-.yt-tm-cell.header {
-  font-weight: 500;
-  color: #fff;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.dt-speed-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.yt-tm-cell.speed {
-  color: #f1f1f1;
-  font-weight: 500;
+.dt-speed-btn {
+    cursor: pointer;
+    color: var(--dt-text-muted);
+    font-size: 16px;
+    user-select: none;
+    padding: 0 4px;
 }
 
-.yt-tm-cell.highlight {
-  color: #ff0000; /* Accent color */
-  font-weight: bold;
+.dt-speed-btn:hover {
+    color: var(--dt-text-main);
 }
 
-.yt-tm-row.current-speed .yt-tm-cell {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  border-radius: 4px;
+/* Main Clock */
+.dt-main-clock {
+    background: var(--dt-card-bg);
+    padding: 8px 24px;
+    border-radius: var(--dt-radius-sm);
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 1px;
 }
 
-/* Chapter & Playlist Section */
-.yt-tm-section {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+/* Settings Icon */
+.dt-settings-icon {
+    cursor: pointer;
+    color: var(--dt-text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.yt-tm-section-title {
-  font-size: 12px;
-  color: #aaa;
-  margin-bottom: 4px;
-  text-transform: uppercase;
+.dt-settings-icon svg {
+    width: 24px;
+    height: 24px;
 }
 
-.yt-tm-info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
+/* --- Section Cards --- */
+.dt-section-card {
+    background: var(--dt-card-bg);
+    border-radius: var(--dt-radius);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.yt-tm-label {
-  color: #ddd;
+.dt-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.yt-tm-value {
-  color: #fff;
-  font-weight: 500;
+.dt-icon {
+    display: flex;
+    align-items: center;
+}
+
+.dt-icon svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Progress Bar */
-.yt-tm-progress-container {
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 4px;
+.dt-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
 }
 
-.yt-tm-progress-bar {
-  height: 100%;
-  background: #ff0000;
-  width: 0%;
-  transition: width 0.5s linear;
+.dt-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.2s linear;
 }
+
+/* Stats Row */
+.dt-stats-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dt-stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dt-stat-label {
+    font-size: 10px;
+    color: var(--dt-text-muted);
+    margin-bottom: 4px;
+}
+
+.dt-stat-value {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Colors */
+.dt-color-video { color: var(--dt-color-video); }
+.dt-bg-video { background-color: var(--dt-color-video); }
+
+.dt-color-chapter { color: var(--dt-color-chapter); }
+.dt-bg-chapter { background-color: var(--dt-color-chapter); }
+
+.dt-color-playlist { color: var(--dt-color-playlist); }
+.dt-bg-playlist { background-color: var(--dt-color-playlist); }
 
 /* Utility */
-.hidden {
-  display: none !important;
-}
-
+.hidden { display: none !important; }
