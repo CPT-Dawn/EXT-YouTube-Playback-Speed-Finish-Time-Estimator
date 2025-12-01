@@ -43,7 +43,6 @@
     let chapters = [];
 
     // Strategy 1: Macro Markers List (Most reliable if available)
-    // This is the "View all" chapters list, often present in the DOM even if not visible
     const macroMarkers = document.querySelectorAll('ytd-macro-markers-list-item-renderer');
     if (macroMarkers.length > 0) {
         macroMarkers.forEach(marker => {
@@ -65,7 +64,7 @@
                 if (isNaN(pct)) pct = parseFloat(marker.style.paddingLeft);
                 return {
                     time: (pct / 100) * duration,
-                    title: null // Title is hard to get from marker alone without hover
+                    title: null 
                 };
             }).sort((a, b) => a.time - b.time);
         }
@@ -76,7 +75,6 @@
         const descriptionEl = document.querySelector('#description-inline-expander') || document.querySelector('#description');
         if (descriptionEl) {
             const text = descriptionEl.innerText;
-            // Regex for timestamps: H:MM:SS or MM:SS or M:SS followed by potential title
             const regex = /(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.*)/g;
             let match;
             
@@ -84,7 +82,7 @@
                 const h = match[1] ? parseInt(match[1]) : 0;
                 const m = parseInt(match[2]);
                 const s = parseInt(match[3]);
-                const title = match[4]?.trim().split('\n')[0]; // Take first line of remaining text
+                const title = match[4]?.trim().split('\n')[0]; 
                 const seconds = h * 3600 + m * 60 + s;
                 if (seconds < duration) {
                     chapters.push({ time: seconds, title });
@@ -93,17 +91,13 @@
         }
     }
 
-    // Sort chapters by time
     chapters.sort((a, b) => a.time - b.time);
-
-    // Filter out duplicates or invalid times
     chapters = chapters.filter((c, index, self) => {
         return c.time >= 0 && c.time < duration && (index === 0 || c.time > self[index-1].time + 1);
     });
 
     if (chapters.length === 0) return null;
 
-    // Find current chapter
     let currentChapter = null;
     let nextChapterTime = duration;
 
@@ -116,12 +110,7 @@
         }
     }
 
-    // If we are before the first chapter (rare, but possible if first chapter starts at > 0:00)
     if (!currentChapter) {
-        // If first chapter starts at 0, we should have found it. 
-        // If it starts later, treat 0->first as "Intro" or similar?
-        // For now, let's just return null or the first chapter as upcoming?
-        // Better: assume start is 0.
         if (chapters[0].time > 0) {
              currentChapter = { time: 0, title: "Intro" };
              nextChapterTime = chapters[0].time;
@@ -130,18 +119,9 @@
         }
     }
 
-    // Try to get a better title if we used visual markers (Strategy 2)
     if (!currentChapter.title) {
         const hoverTitle = document.querySelector('.ytp-chapter-title-content')?.textContent;
-        if (hoverTitle) {
-            // This title might be for the *hovered* chapter, not current. 
-            // Only use it if we are sure? 
-            // Actually, ytp-chapter-title-content updates on hover. 
-            // Safest is "Chapter X"
-            currentChapter.title = "Chapter"; 
-        } else {
-            currentChapter.title = "Chapter";
-        }
+        currentChapter.title = hoverTitle || "Chapter";
     }
 
     return {
@@ -158,7 +138,6 @@
     const playlistPanel = document.querySelector('ytd-playlist-panel-renderer');
     if (!playlistPanel) return null;
 
-    // Find current video index
     const currentVideoItem = playlistPanel.querySelector('ytd-playlist-panel-video-renderer[selected]');
     if (!currentVideoItem) return null;
 
@@ -168,7 +147,6 @@
     let totalDuration = 0;
     let currentElapsed = 0;
     
-    // Iterate through all loaded items
     const items = playlistPanel.querySelectorAll('ytd-playlist-panel-video-renderer');
     for (const item of items) {
         const durationStr = item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim();
@@ -207,11 +185,22 @@
     const container = document.createElement('div');
     container.id = 'yt-time-manager-container';
     
-    // SVG Icons
     const settingsIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
-    const videoIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H5v-2h6v2zm0-4H5V7h6v2zm8 4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>`; // Simplified video icon
-    const chapterIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>`; // Text/Chapter icon
+    const videoIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H5v-2h6v2zm0-4H5V7h6v2zm8 4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>`;
+    const chapterIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>`;
     const playlistIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>`;
+
+    // Helper to create details panel structure
+    const createDetailsPanel = (idPrefix) => `
+        <div class="dt-details-panel">
+            <div class="dt-detail-header">
+                <span>Time Remaining</span>
+                <span>Speed</span>
+                <span>Finishing At</span>
+            </div>
+            <div id="${idPrefix}-details-list" class="dt-detail-list"></div>
+        </div>
+    `;
 
     container.innerHTML = `
       <!-- Header -->
@@ -249,6 +238,7 @@
                 <span id="dt-video-finish" class="dt-stat-value">--:--</span>
             </div>
         </div>
+        ${createDetailsPanel('dt-video')}
       </div>
 
       <!-- Chapter Section -->
@@ -270,6 +260,7 @@
                 <span id="dt-chapter-finish" class="dt-stat-value">--:--</span>
             </div>
         </div>
+        ${createDetailsPanel('dt-chapter')}
       </div>
 
       <!-- Playlist Section -->
@@ -291,10 +282,10 @@
                 <span id="dt-playlist-finish" class="dt-stat-value">--:--</span>
             </div>
         </div>
+        ${createDetailsPanel('dt-playlist')}
       </div>
     `;
 
-    // Add Event Listeners
     const speedDown = container.querySelector('#dt-speed-down');
     const speedUp = container.querySelector('#dt-speed-up');
 
@@ -311,8 +302,35 @@
         if (newRate < 0.25) newRate = 0.25;
         if (newRate > 16) newRate = 16;
         video.playbackRate = newRate;
-        updateUI(video); // Immediate update
+        updateUI(video);
     }
+  }
+
+  function updateDetailsList(listId, remainingSeconds, currentSpeed, activeClass) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+
+    const speeds = [1, 1.25, 1.5, 1.75, 2];
+    if (!speeds.includes(currentSpeed)) {
+        speeds.push(currentSpeed);
+        speeds.sort((a, b) => a - b);
+    }
+
+    let html = '';
+    speeds.forEach(speed => {
+        const adjustedRemaining = remainingSeconds / speed;
+        const isActive = speed === currentSpeed;
+        const activeClassStr = isActive ? `active ${activeClass}` : '';
+        
+        html += `
+            <div class="dt-detail-row ${activeClassStr}">
+                <span>${formatTimeShort(adjustedRemaining)}</span>
+                <span>${speed}x</span>
+                <span>${getFinishTime(adjustedRemaining)}</span>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
   }
 
   function updateUI(video) {
@@ -330,12 +348,16 @@
     document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
     // 2. Update Video Section
-    const videoRemaining = (duration - currentTime) / playbackRate;
+    const videoRemainingRaw = duration - currentTime;
+    const videoRemaining = videoRemainingRaw / playbackRate;
     document.getElementById('dt-video-remaining').textContent = formatTimeShort(videoRemaining);
     document.getElementById('dt-video-finish').textContent = getFinishTime(videoRemaining);
     
     const videoProgress = (currentTime / duration) * 100;
     document.getElementById('dt-video-progress').style.width = `${videoProgress}%`;
+
+    // Update Video Details
+    updateDetailsList('dt-video-details-list', videoRemainingRaw, playbackRate, 'video-active');
 
     // 3. Update Chapter Section
     const chapterInfo = getChapterInfo(video);
@@ -351,6 +373,9 @@
         
         const chapterProgress = Math.max(0, Math.min(100, chapterInfo.progress * 100));
         document.getElementById('dt-chapter-progress').style.width = `${chapterProgress}%`;
+
+        // Update Chapter Details (using raw remaining time for calculation)
+        updateDetailsList('dt-chapter-details-list', chapterInfo.remaining, playbackRate, 'chapter-active');
     } else {
         chapterSection.classList.add('hidden');
     }
@@ -368,6 +393,9 @@
 
         const playlistProgress = Math.max(0, Math.min(100, playlistInfo.progress * 100));
         document.getElementById('dt-playlist-progress').style.width = `${playlistProgress}%`;
+
+        // Update Playlist Details
+        updateDetailsList('dt-playlist-details-list', playlistInfo.totalSeconds, playbackRate, 'playlist-active');
     } else {
         playlistSection.classList.add('hidden');
     }

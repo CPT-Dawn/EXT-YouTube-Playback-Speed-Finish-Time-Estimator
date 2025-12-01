@@ -108,6 +108,11 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: background 0.2s;
+}
+
+.dt-section-card:hover {
+    background: #2a2a2a; /* Slightly lighter on hover */
 }
 
 .dt-section-header {
@@ -173,6 +178,68 @@
     font-size: 16px;
     font-weight: 500;
 }
+
+/* --- Expandable Details Panel --- */
+.dt-details-panel {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    margin-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dt-section-card:hover .dt-details-panel {
+    max-height: 500px; /* Arbitrary large height */
+    opacity: 1;
+    margin-top: 8px;
+    padding-top: 12px;
+}
+
+.dt-detail-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--dt-text-muted);
+    margin-bottom: 8px;
+    padding: 0 12px;
+}
+
+.dt-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dt-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--dt-text-muted);
+}
+
+.dt-detail-row.active {
+    border: 1px solid; /* Color will be inherited or set specifically */
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--dt-text-main);
+    font-weight: 500;
+}
+
+/* Specific active border colors */
+.dt-section-card:has(.dt-color-video) .dt-detail-row.active { border-color: var(--dt-color-video); }
+.dt-section-card:has(.dt-color-chapter) .dt-detail-row.active { border-color: var(--dt-color-chapter); }
+.dt-section-card:has(.dt-color-playlist) .dt-detail-row.active { border-color: var(--dt-color-playlist); }
+
+/* Fallback for browsers not supporting :has (though most do now) */
+/* We can add specific classes via JS if needed, but let's try generic first */
+.dt-detail-row.active.video-active { border-color: var(--dt-color-video); }
+.dt-detail-row.active.chapter-active { border-color: var(--dt-color-chapter); }
+.dt-detail-row.active.playlist-active { border-color: var(--dt-color-playlist); }
+
 
 /* Colors */
 .dt-color-video { color: var(--dt-color-video); }
