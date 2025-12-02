@@ -241,6 +241,48 @@
 .dt-detail-row.active.playlist-active { border-color: var(--dt-color-playlist); }
 
 
+/* --- Playlist Controls --- */
+.dt-playlist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--dt-text-muted);
+}
+
+.dt-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.dt-playlist-input {
+    background: transparent;
+    border: none;
+    color: var(--dt-text-main);
+    font-family: var(--dt-font-mono);
+    font-size: 12px;
+    width: 40px;
+    text-align: right;
+    outline: none;
+}
+
+.dt-playlist-input::-webkit-inner-spin-button, 
+.dt-playlist-input::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+.dt-playlist-total {
+    color: var(--dt-text-muted);
+    font-family: var(--dt-font-mono);
+}
+
 /* Colors */
 .dt-color-video { color: var(--dt-color-video); }
 .dt-bg-video { background-color: var(--dt-color-video); }

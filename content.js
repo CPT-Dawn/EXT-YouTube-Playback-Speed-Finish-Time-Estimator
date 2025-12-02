@@ -2,6 +2,7 @@
   let injected = false;
   let lastUrl = location.href;
   let updateInterval = null;
+  let playlistTargetIndex = null; // Store user preference
 
   // --- 1. UTILITIES ---
 
@@ -134,7 +135,7 @@
     };
   }
 
-  function getPlaylistInfo(video) {
+  function getPlaylistInfo(video, targetIndex = null) {
     const playlistPanel = document.querySelector('ytd-playlist-panel-renderer');
     if (!playlistPanel) return null;
 
@@ -147,10 +148,66 @@
     let totalDuration = 0;
     let currentElapsed = 0;
     
-    const items = playlistPanel.querySelectorAll('ytd-playlist-panel-video-renderer');
-    for (const item of items) {
+    const items = Array.from(playlistPanel.querySelectorAll('ytd-playlist-panel-video-renderer'));
+    if (items.length === 0) return null;
+
+    // Attempt to determine absolute indices
+    let firstAbsoluteIndex = -1;
+    let firstDomIndexWithNumber = -1;
+
+    for (let i = 0; i < items.length; i++) {
+        const indexEl = items[i].querySelector('#index');
+        if (indexEl) {
+            const val = parseInt(indexEl.textContent.trim());
+            if (!isNaN(val)) {
+                firstAbsoluteIndex = val;
+                firstDomIndexWithNumber = i;
+                break;
+            }
+        }
+    }
+
+    // Fallback: assume 1-based from start of DOM if no index found
+    if (firstAbsoluteIndex === -1) {
+        firstAbsoluteIndex = 1;
+        firstDomIndexWithNumber = 0;
+    }
+
+    // Calculate current video's absolute index
+    const currentDomIndex = items.indexOf(currentVideoItem);
+    const currentAbsoluteIndex = firstAbsoluteIndex + (currentDomIndex - firstDomIndexWithNumber);
+    
+    // Determine the last available index in DOM
+    const lastDomIndex = items.length - 1;
+    const lastAbsoluteIndex = firstAbsoluteIndex + (lastDomIndex - firstDomIndexWithNumber);
+
+    // Determine target index
+    // If not set, default to last available (this is the only time we "change" it for the user)
+    let effectiveTargetIndex = targetIndex;
+    if (effectiveTargetIndex === null) {
+        effectiveTargetIndex = lastAbsoluteIndex;
+    }
+
+    // Calculation Logic
+    // We only sum up to the target. 
+    // If target < current, we effectively calculate nothing (or just current video remainder?)
+    // Let's stick to the loop logic: it breaks if index > target.
+    // If target < current, the loop will break before adding any *future* videos.
+    // But we still add the current video's remainder if we are ON the current video.
+    
+    // We clamp the calculation loop to what is loaded in DOM
+    const calculationTargetIndex = Math.min(effectiveTargetIndex, lastAbsoluteIndex);
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const absoluteIndex = firstAbsoluteIndex + (i - firstDomIndexWithNumber);
+
+        // Stop if we passed the target
+        if (absoluteIndex > calculationTargetIndex) break;
+
         const durationStr = item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim();
         const itemDuration = parseDuration(durationStr);
+        
         totalDuration += itemDuration;
 
         if (item === currentVideoItem) {
@@ -163,6 +220,16 @@
         }
         
         if (foundCurrent) {
+            // Only add if we are <= target (checked by loop break above)
+            // But wait, if target < current, we shouldn't be here?
+            // If target < current, absoluteIndex > calculationTargetIndex will trigger BEFORE we reach current?
+            // No, current is at `currentAbsoluteIndex`.
+            // If target (50) < current (100). calculationTargetIndex is 50.
+            // Loop runs 1..50. Breaks.
+            // We never reach current (100).
+            // So foundCurrent is false. totalRemaining is 0.
+            // This is correct: "Finish at 50" when at 100 means "Already finished".
+            
             if (durationStr) {
                 totalRemaining += itemDuration;
                 count++;
@@ -175,7 +242,10 @@
     return {
         videosRemaining: count,
         totalSeconds: totalRemaining,
-        progress: totalDuration > 0 ? (currentElapsed / totalDuration) : 0
+        progress: totalDuration > 0 ? (currentElapsed / totalDuration) : 0,
+        currentIndex: currentAbsoluteIndex,
+        totalVideos: lastAbsoluteIndex, 
+        targetIndex: effectiveTargetIndex // Return the user's target (or default), NOT clamped to current
     };
   }
 
@@ -191,14 +261,25 @@
     const playlistIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>`;
 
     // Helper to create details panel structure
-    const createDetailsPanel = (idPrefix) => `
+    const createDetailsPanel = (idPrefix, extraContent = '') => `
         <div class="dt-details-panel">
+            ${extraContent}
             <div class="dt-detail-header">
                 <span>Time Remaining</span>
                 <span>Speed</span>
                 <span>Finishing At</span>
             </div>
             <div id="${idPrefix}-details-list" class="dt-detail-list"></div>
+        </div>
+    `;
+
+    const playlistControls = `
+        <div class="dt-playlist-controls">
+            <span>Calculate until video:</span>
+            <div class="dt-input-wrapper">
+                <input type="number" id="dt-playlist-target-input" min="1" class="dt-playlist-input">
+                <span id="dt-playlist-total-count" class="dt-playlist-total">/ --</span>
+            </div>
         </div>
     `;
 
@@ -282,15 +363,26 @@
                 <span id="dt-playlist-finish" class="dt-stat-value">--:--</span>
             </div>
         </div>
-        ${createDetailsPanel('dt-playlist')}
+        ${createDetailsPanel('dt-playlist', playlistControls)}
       </div>
     `;
 
     const speedDown = container.querySelector('#dt-speed-down');
     const speedUp = container.querySelector('#dt-speed-up');
+    const playlistInput = container.querySelector('#dt-playlist-target-input');
 
     speedDown.addEventListener('click', () => changeSpeed(-0.25));
     speedUp.addEventListener('click', () => changeSpeed(0.25));
+    
+    // Playlist Input Listener
+    playlistInput.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        if (!isNaN(val) && val > 0) {
+            playlistTargetIndex = val;
+            const video = document.querySelector('video');
+            if (video) updateUI(video);
+        }
+    });
 
     return container;
   }
@@ -381,12 +473,30 @@
     }
 
     // 4. Update Playlist Section
-    const playlistInfo = getPlaylistInfo(video);
+    const playlistInfo = getPlaylistInfo(video, playlistTargetIndex);
     const playlistSection = document.getElementById('dt-playlist-section');
 
-    if (playlistInfo && playlistInfo.videosRemaining > 0) {
+    if (playlistInfo && playlistInfo.totalVideos > 0) {
         playlistSection.classList.remove('hidden');
         
+        // Update Inputs
+        const input = document.getElementById('dt-playlist-target-input');
+        const totalLabel = document.getElementById('dt-playlist-total-count');
+        
+        if (input && totalLabel) {
+            // If user hasn't set a custom target, always default to playlist total
+            if (playlistTargetIndex === null) {
+                input.value = playlistInfo.totalVideos;
+            } else if (document.activeElement !== input) {
+                // If user has set a value, keep it displayed (unless they're typing)
+                if (parseInt(input.value) !== playlistTargetIndex) {
+                    input.value = playlistTargetIndex;
+                }
+            }
+            
+            totalLabel.textContent = `/ ${playlistInfo.totalVideos}`;
+        }
+
         const playlistRemaining = playlistInfo.totalSeconds / playbackRate;
         document.getElementById('dt-playlist-remaining').textContent = formatTimeShort(playlistRemaining);
         document.getElementById('dt-playlist-finish').textContent = getFinishTime(playlistRemaining);
@@ -433,10 +543,22 @@
 
   // --- 5. OBSERVERS & INIT ---
 
+  function getVideoId(url) {
+      try {
+          const u = new URL(url);
+          return u.searchParams.get('v');
+      } catch {
+          return null;
+      }
+  }
+
   function init() {
+    let lastVideoId = getVideoId(location.href);
+
     const observer = new MutationObserver((mutations) => {
-        if (location.href !== lastUrl) {
-            lastUrl = location.href;
+        const currentVideoId = getVideoId(location.href);
+        if (currentVideoId !== lastVideoId) {
+            lastVideoId = currentVideoId;
             handleNavigation();
         }
     });
@@ -450,6 +572,7 @@
     if (existing) existing.remove();
     if (updateInterval) clearInterval(updateInterval);
     injected = false;
+    playlistTargetIndex = null; // Reset target on nav
 
     if (!isValidWatchPage()) return;
 
