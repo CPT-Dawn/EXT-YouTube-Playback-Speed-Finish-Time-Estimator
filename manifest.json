@@ -3,7 +3,7 @@
   "name": "YouTube Time Manager",
   "version": "2.0.0",
   "description": "Advanced time management suite for YouTube: Remaining time, Finishes at, Playlist calc, and more.",
-  "permissions": ["scripting", "tabs"],
+  "permissions": ["scripting", "tabs", "storage"],
   "host_permissions": ["*://*.youtube.com/*"],
   "background": {
     "service_worker": "background.js"

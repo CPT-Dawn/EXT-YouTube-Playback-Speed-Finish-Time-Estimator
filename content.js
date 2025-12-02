@@ -3,6 +3,8 @@
   let lastUrl = location.href;
   let updateInterval = null;
   let playlistTargetIndex = null; // Store user preference
+  let is24HourMode = true; // Default to 24h
+
 
   // --- 1. UTILITIES ---
 
@@ -23,7 +25,7 @@
 
   function getFinishTime(secondsFromNow) {
     const date = new Date(Date.now() + secondsFromNow * 1000);
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: false });
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: !is24HourMode });
   }
 
   function parseDuration(durationStr) {
@@ -32,6 +34,27 @@
     if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     if (parts.length === 2) return parts[0] * 60 + parts[1];
     return parts[0];
+  }
+
+  // --- 1.5 SETTINGS ---
+
+  async function loadSettings() {
+    try {
+        const result = await chrome.storage.local.get(['is24HourMode']);
+        if (result.is24HourMode !== undefined) {
+            is24HourMode = result.is24HourMode;
+        }
+    } catch (e) {
+        console.error("Failed to load settings:", e);
+    }
+  }
+
+  function saveSettings() {
+    try {
+        chrome.storage.local.set({ is24HourMode });
+    } catch (e) {
+        console.error("Failed to save settings:", e);
+    }
   }
 
   // --- 2. SCRAPERS ---
@@ -283,6 +306,18 @@
         </div>
     `;
 
+    const settingsPanel = `
+        <div id="dt-settings-panel" class="dt-settings-panel hidden">
+            <div class="dt-setting-row">
+                <span>24-Hour Clock</span>
+                <label class="dt-toggle-switch">
+                    <input type="checkbox" id="dt-24h-toggle" ${is24HourMode ? 'checked' : ''}>
+                    <span class="dt-slider"></span>
+                </label>
+            </div>
+        </div>
+    `;
+
     container.innerHTML = `
       <!-- Header -->
       <div class="dt-header">
@@ -297,7 +332,8 @@
             </div>
         </div>
         <div id="dt-current-clock" class="dt-main-clock">--:--:--</div>
-        <div class="dt-settings-icon">${settingsIcon}</div>
+        <div class="dt-settings-icon" id="dt-settings-btn">${settingsIcon}</div>
+        ${settingsPanel}
       </div>
 
       <!-- Video Section -->
@@ -384,6 +420,31 @@
         }
     });
 
+
+    // Settings Listeners
+    const settingsBtn = container.querySelector('#dt-settings-btn');
+    const settingsPanelEl = container.querySelector('#dt-settings-panel');
+    const toggle24h = container.querySelector('#dt-24h-toggle');
+
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPanelEl.classList.toggle('hidden');
+    });
+
+    // Close settings when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!settingsPanelEl.contains(e.target) && !settingsBtn.contains(e.target)) {
+            settingsPanelEl.classList.add('hidden');
+        }
+    });
+
+    toggle24h.addEventListener('change', (e) => {
+        is24HourMode = e.target.checked;
+        saveSettings();
+        const video = document.querySelector('video');
+        if (video) updateUI(video);
+    });
+
     return container;
   }
 
@@ -437,7 +498,7 @@
 
     // 1. Update Header
     document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
-    document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString([], { hour12: !is24HourMode });
 
     // 2. Update Video Section
     const videoRemainingRaw = duration - currentTime;
@@ -517,6 +578,8 @@
     const existing = document.getElementById('yt-time-manager-container');
     if (existing) return;
 
+
+    await loadSettings(); // Load settings before creating UI
     const ui = createUI();
     
     if (container.id === 'secondary') {
