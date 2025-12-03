@@ -844,6 +844,17 @@
       cleanup(true);
       return;
     }
+
+    // --- RELOAD LOGIC START ---
+    // Check if this is the first time we are hitting a watch page in this tab session
+    const SESSION_KEY = 'yt_time_manager_reloaded';
+    if (!sessionStorage.getItem(SESSION_KEY)) {
+        debugLog('First visit to watch page in this tab, forcing reload...');
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        location.reload();
+        return; // Stop further execution
+    }
+    // --- RELOAD LOGIC END ---
     
     // Debounce to avoid rapid-fire calls
     navigationDebounceTimer = setTimeout(() => {
