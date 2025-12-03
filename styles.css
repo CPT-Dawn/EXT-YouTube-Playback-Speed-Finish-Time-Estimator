@@ -17,7 +17,9 @@
 
 #yt-time-manager-container {
   font-family: var(--dt-font-main);
-  background: var(--dt-bg);
+  background: rgba(17, 17, 17, 0.11);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--dt-radius);
   padding: 16px;
   margin-bottom: 20px;
@@ -25,7 +27,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 /* --- Header Section --- */
