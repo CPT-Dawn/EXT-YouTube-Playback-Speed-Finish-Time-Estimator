@@ -1,12 +1,6 @@
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (
-    tab.url &&
-    tab.url.includes("youtube.com/watch") &&
-    changeInfo.status === "complete"
-  ) {
-    chrome.scripting.executeScript({
-      target: { tabId },
-      files: ["content.js"],
-    });
-  }
+// Background service worker for YouTube Time Manager
+// Currently minimal - reserved for future features like cross-tab messaging, settings sync, etc.
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('YouTube Time Manager installed');
 });

@@ -4,6 +4,9 @@
   let updateInterval = null;
   let playlistTargetIndex = null; // Store user preference
   let is24HourMode = true; // Default to 24h
+  let lastVideoId = null; // Track current video ID
+  let navigationDebounceTimer = null; // Debounce navigation events
+  const DEBUG = false; // Set to true for debugging
 
 
   // --- 1. UTILITIES ---
@@ -34,6 +37,21 @@
     if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     if (parts.length === 2) return parts[0] * 60 + parts[1];
     return parts[0];
+  }
+
+  function getCurrentVideoId() {
+    try {
+      const urlParams = new URLSearchParams(location.search);
+      return urlParams.get('v');
+    } catch {
+      return null;
+    }
+  }
+
+  function debugLog(...args) {
+    if (DEBUG) {
+      console.log('[YT Time Manager]', ...args);
+    }
   }
 
   // --- 1.5 SETTINGS ---
@@ -574,99 +592,198 @@
 
   // --- 4. INJECTION LOGIC ---
 
-  async function injectUI(video, container) {
+  let isInjecting = false;
+  let currentInjectionId = 0;
+
+  function cleanup() {
     const existing = document.getElementById('yt-time-manager-container');
-    if (existing) return;
-
-
-    await loadSettings(); // Load settings before creating UI
-    const ui = createUI();
-    
-    if (container.id === 'secondary') {
-        container.prepend(ui);
-    } else {
-        container.parentNode.insertBefore(ui, container);
+    if (existing) existing.remove();
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
     }
+    injected = false;
+    playlistTargetIndex = null;
+  }
 
-    if (updateInterval) clearInterval(updateInterval);
-    updateInterval = setInterval(() => updateUI(video), 1000);
-    updateUI(video);
+  async function injectUI(injectionId) {
+    debugLog('injectUI called with ID:', injectionId);
+    
+    // 1. Synchronous Lock Check
+    if (isInjecting) {
+      debugLog('Already injecting, skipping');
+      return;
+    }
+    
+    // 2. Validate we are on a watch page BEFORE starting
+    if (!isValidWatchPage()) {
+      debugLog('Not a valid watch page, skipping');
+      return;
+    }
+    
+    // 3. Check if this is the same video
+    const currentVideoId = getCurrentVideoId();
+    if (!currentVideoId) {
+      debugLog('No video ID found, skipping');
+      return;
+    }
+    
+    if (injected && lastVideoId === currentVideoId) {
+      debugLog('Same video, UI already injected, skipping');
+      return;
+    }
+    
+    isInjecting = true;
+    debugLog('Starting injection for video:', currentVideoId);
 
-    injected = true;
+    try {
+      // 4. Concurrency Check: Before cleanup
+      if (injectionId !== currentInjectionId) {
+        debugLog('Stale injection ID, aborting');
+        return;
+      }
+
+      // 5. Cleanup previous instance
+      cleanup();
+
+      // 6. Wait for necessary elements with longer timeout
+      const video = await waitForElement('video', 15000);
+      const container = await waitForElement('#secondary, ytd-watch-next-secondary-results-renderer', 15000);
+
+      // 7. Concurrency Check: After async wait
+      if (injectionId !== currentInjectionId) {
+        debugLog('Stale injection ID after wait, aborting');
+        return;
+      }
+
+      if (!video || !container) {
+        debugLog('Required elements not found:', { video: !!video, container: !!container });
+        return;
+      }
+
+      // 8. Final Safety Check: Ensure we don't double inject
+      if (document.getElementById('yt-time-manager-container')) {
+        debugLog('UI already exists, skipping');
+        return;
+      }
+
+      // 9. Load settings and create UI
+      await loadSettings();
+      const ui = createUI();
+      
+      if (container.id === 'secondary') {
+        container.prepend(ui);
+      } else {
+        container.parentNode.insertBefore(ui, container);
+      }
+
+      // 10. Start updates
+      updateInterval = setInterval(() => updateUI(video), 1000);
+      updateUI(video);
+      
+      injected = true;
+      lastVideoId = currentVideoId;
+      debugLog('Injection successful for video:', currentVideoId);
+
+    } catch (error) {
+      debugLog('Injection error:', error);
+    } finally {
+      isInjecting = false;
+    }
   }
 
   function isValidWatchPage() {
     try {
-      const url = new URL(window.location.href);
-      return url.pathname === "/watch" && url.searchParams.has("v");
+      return location.pathname === "/watch" && new URLSearchParams(location.search).has("v");
     } catch {
       return false;
     }
   }
 
+  function waitForElement(selector, timeout = 15000) {
+    return new Promise((resolve) => {
+      const existing = document.querySelector(selector);
+      if (existing) {
+        debugLog('Element found immediately:', selector);
+        return resolve(existing);
+      }
+
+      debugLog('Waiting for element:', selector);
+      let resolved = false;
+
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(selector);
+        if (element && !resolved) {
+          resolved = true;
+          observer.disconnect();
+          debugLog('Element found via observer:', selector);
+          resolve(element);
+        }
+      });
+
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+      });
+
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          observer.disconnect();
+          debugLog('Element wait timeout:', selector);
+          resolve(null);
+        }
+      }, timeout);
+    });
+  }
+
   // --- 5. OBSERVERS & INIT ---
 
-  function getVideoId(url) {
-      try {
-          const u = new URL(url);
-          return u.searchParams.get('v');
-      } catch {
-          return null;
-      }
+  function handleNavigation() {
+    debugLog('Navigation detected, URL:', location.href);
+    
+    // Debounce: Prevent rapid-fire calls
+    if (navigationDebounceTimer) {
+      clearTimeout(navigationDebounceTimer);
+    }
+    
+    navigationDebounceTimer = setTimeout(() => {
+      currentInjectionId++;
+      const thisInjectionId = currentInjectionId;
+      debugLog('Triggering injection with ID:', thisInjectionId);
+      injectUI(thisInjectionId);
+    }, 300); // 300ms debounce
   }
 
   function init() {
-    let lastVideoId = getVideoId(location.href);
-
-    const observer = new MutationObserver((mutations) => {
-        const currentVideoId = getVideoId(location.href);
-        if (currentVideoId !== lastVideoId) {
-            lastVideoId = currentVideoId;
-            handleNavigation();
+    debugLog('Initializing YouTube Time Manager');
+    
+    // 1. Primary: Listen for YouTube's custom navigation event
+    document.addEventListener('yt-navigate-finish', handleNavigation);
+    debugLog('Registered yt-navigate-finish listener');
+    
+    // 2. Backup: URL change detection for edge cases
+    let lastUrl = location.href;
+    const urlCheckInterval = setInterval(() => {
+      if (location.href !== lastUrl) {
+        debugLog('URL change detected via polling');
+        lastUrl = location.href;
+        if (isValidWatchPage() && !isInjecting) {
+          handleNavigation();
         }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    handleNavigation();
-  }
-
-  async function handleNavigation() {
-    const existing = document.getElementById('yt-time-manager-container');
-    if (existing) existing.remove();
-    if (updateInterval) clearInterval(updateInterval);
-    injected = false;
-    playlistTargetIndex = null; // Reset target on nav
-
-    if (!isValidWatchPage()) return;
-
-    const video = await waitForElement('video');
-    const container = await waitForElement('#secondary, ytd-watch-next-secondary-results-renderer');
-
-    if (video && container) {
-        injectUI(video, container);
+      }
+    }, 2000); // Check every 2 seconds
+    
+    // 3. Initial Load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        debugLog('DOMContentLoaded fired');
+        handleNavigation();
+      });
+    } else {
+      debugLog('Document already ready');
+      handleNavigation();
     }
-  }
-
-  function waitForElement(selector, timeout = 10000) {
-    return new Promise((resolve) => {
-        if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
-        }
-
-        const observer = new MutationObserver(() => {
-            if (document.querySelector(selector)) {
-                observer.disconnect();
-                resolve(document.querySelector(selector));
-            }
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-
-        setTimeout(() => {
-            observer.disconnect();
-            resolve(null);
-        }, timeout);
-    });
   }
 
   init();
