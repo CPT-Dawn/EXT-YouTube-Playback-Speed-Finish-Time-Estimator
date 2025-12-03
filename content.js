@@ -1,11 +1,15 @@
 (function () {
+  // State Management
   let injected = false;
   let updateInterval = null;
   let playlistTargetIndex = null; // Store user preference
   let is24HourMode = true; // Default to 24h
   let lastVideoId = null; // Track current video ID
   let navigationDebounceTimer = null; // Debounce navigation events
-  const DEBUG = false; // Set to true for debugging
+  let isInjecting = false; // Injection lock
+  let currentInjectionId = 0; // Track injection attempts
+  let pageObserver = null; // DOM observer for page changes
+  const DEBUG = true; // Set to true for debugging
 
 
   // --- 1. UTILITIES ---
@@ -480,204 +484,466 @@
 
   // --- 4. INJECTION LOGIC ---
 
-  let isInjecting = false;
-  let currentInjectionId = 0;
-
-  function cleanup() {
-    const existing = document.getElementById('yt-time-manager-container');
-    if (existing) existing.remove();
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-    injected = false;
-    playlistTargetIndex = null;
-  }
-
-  async function injectUI(injectionId) {
-    debugLog('injectUI called with ID:', injectionId);
-    
-    // 1. Synchronous Lock Check
-    if (isInjecting) {
-      debugLog('Already injecting, skipping');
-      return;
-    }
-    
-    // 2. Validate we are on a watch page BEFORE starting
-    if (!isValidWatchPage()) {
-      debugLog('Not a valid watch page, skipping');
-      return;
-    }
-    
-    // 3. Check if this is the same video
-    const currentVideoId = getCurrentVideoId();
-    if (!currentVideoId) {
-      debugLog('No video ID found, skipping');
-      return;
-    }
-    
-    if (injected && lastVideoId === currentVideoId) {
-      debugLog('Same video, UI already injected, skipping');
-      return;
-    }
-    
-    isInjecting = true;
-    debugLog('Starting injection for video:', currentVideoId);
-
+  /**
+   * Check if we're on a valid YouTube watch page
+   */
+  function isWatchPage() {
     try {
-      // 4. Concurrency Check: Before cleanup
-      if (injectionId !== currentInjectionId) {
-        debugLog('Stale injection ID, aborting');
-        return;
-      }
-
-      // 5. Cleanup previous instance
-      cleanup();
-
-      // 6. Wait for necessary elements with longer timeout
-      const video = await waitForElement('video', 15000);
-      const container = await waitForElement('#secondary, ytd-watch-next-secondary-results-renderer', 15000);
-
-      // 7. Concurrency Check: After async wait
-      if (injectionId !== currentInjectionId) {
-        debugLog('Stale injection ID after wait, aborting');
-        return;
-      }
-
-      if (!video || !container) {
-        debugLog('Required elements not found:', { video: !!video, container: !!container });
-        return;
-      }
-
-      // 8. Final Safety Check: Ensure we don't double inject
-      if (document.getElementById('yt-time-manager-container')) {
-        debugLog('UI already exists, skipping');
-        return;
-      }
-
-      // 9. Load settings and create UI
-      await loadSettings();
-      const ui = await loadUI();
-      if (!ui) {
-          debugLog('Failed to load UI');
-          return;
+      // Must be on /watch path
+      if (location.pathname !== '/watch') {
+        return false;
       }
       
-      if (container.id === 'secondary') {
-        container.prepend(ui);
-      } else {
-        container.parentNode.insertBefore(ui, container);
-      }
-
-      // 10. Start updates
-      updateInterval = setInterval(() => updateUI(video), 1000);
-      updateUI(video);
+      // Must have a video ID parameter
+      const urlParams = new URLSearchParams(location.search);
+      const videoId = urlParams.get('v');
       
-      injected = true;
-      lastVideoId = currentVideoId;
-      debugLog('Injection successful for video:', currentVideoId);
-
-    } catch (error) {
-      debugLog('Injection error:', error);
-    } finally {
-      isInjecting = false;
-    }
-  }
-
-  function isValidWatchPage() {
-    try {
-      return location.pathname === "/watch" && new URLSearchParams(location.search).has("v");
-    } catch {
+      // Validate video ID format (11 characters, alphanumeric + _ and -)
+      if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+        return false;
+      }
+      
+      // Not an embed page
+      if (location.pathname.includes('/embed')) {
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      debugLog('Error in isWatchPage:', e);
       return false;
     }
   }
 
-  function waitForElement(selector, timeout = 15000) {
+  /**
+   * Wait for YouTube's app to be fully ready
+   */
+  function waitForYouTubeReady(timeout = 10000) {
     return new Promise((resolve) => {
-      const existing = document.querySelector(selector);
-      if (existing) {
-        debugLog('Element found immediately:', selector);
-        return resolve(existing);
+      debugLog('Waiting for YouTube to be ready...');
+      
+      const checkReady = () => {
+        const ytdApp = document.querySelector('ytd-app');
+        if (!ytdApp) return false;
+        
+        // Check if page is marked as watch page
+        const isWatchPageReady = ytdApp.hasAttribute('is-watch-page') || 
+                                  ytdApp.getAttribute('page') === 'watch';
+        
+        return isWatchPageReady;
+      };
+      
+      if (checkReady()) {
+        debugLog('YouTube already ready');
+        return resolve(true);
       }
-
-      debugLog('Waiting for element:', selector);
+      
       let resolved = false;
-
+      const startTime = Date.now();
+      
+      // Hybrid approach: observer + polling
       const observer = new MutationObserver(() => {
-        const element = document.querySelector(selector);
-        if (element && !resolved) {
+        if (resolved) return;
+        
+        if (checkReady()) {
           resolved = true;
           observer.disconnect();
-          debugLog('Element found via observer:', selector);
-          resolve(element);
+          debugLog('YouTube ready detected via observer');
+          resolve(true);
         }
       });
+      
+      const ytdApp = document.querySelector('ytd-app');
+      if (ytdApp) {
+        observer.observe(ytdApp, {
+          attributes: true,
+          attributeFilter: ['is-watch-page', 'page']
+        });
+      }
+      
+      // Polling as backup
+      const pollInterval = setInterval(() => {
+        if (resolved) {
+          clearInterval(pollInterval);
+          return;
+        }
+        
+        if (checkReady()) {
+          resolved = true;
+          observer.disconnect();
+          clearInterval(pollInterval);
+          debugLog('YouTube ready detected via polling');
+          resolve(true);
+        }
+        
+        if (Date.now() - startTime > timeout) {
+          resolved = true;
+          observer.disconnect();
+          clearInterval(pollInterval);
+          debugLog('YouTube ready timeout, proceeding anyway');
+          resolve(false);
+        }
+      }, 100);
+    });
+  }
 
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
+  /**
+   * Wait for required DOM elements to be present and ready
+   */
+  function waitForRequiredElements(timeout = 15000) {
+    return new Promise((resolve) => {
+      debugLog('Waiting for required elements...');
+      
+      const checkElements = () => {
+        // 1. Video element must exist and be ready
+        const video = document.querySelector('video');
+        if (!video || video.readyState < 1) {
+          return null;
+        }
+        
+        // 2. Secondary container (where we inject)
+        const secondary = document.querySelector('#secondary');
+        const watchFlexy = document.querySelector('ytd-watch-flexy');
+        const container = secondary || watchFlexy;
+        
+        if (!container) {
+          return null;
+        }
+        
+        // 3. Primary content (ensures main page is loaded)
+        const primary = document.querySelector('#primary, ytd-watch-metadata');
+        if (!primary) {
+          return null;
+        }
+        
+        // All elements found and ready
+        return { video, container };
+      };
+      
+      const existing = checkElements();
+      if (existing) {
+        debugLog('All required elements found immediately');
+        return resolve(existing);
+      }
+      
+      let resolved = false;
+      const startTime = Date.now();
+      
+      const observer = new MutationObserver(() => {
+        if (resolved) return;
+        
+        const elements = checkElements();
+        if (elements) {
+          resolved = true;
+          observer.disconnect();
+          debugLog('All required elements found via observer');
+          resolve(elements);
+        }
       });
-
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Timeout
       setTimeout(() => {
         if (!resolved) {
           resolved = true;
           observer.disconnect();
-          debugLog('Element wait timeout:', selector);
+          debugLog('Element wait timeout');
           resolve(null);
         }
       }, timeout);
     });
   }
 
-  // --- 5. OBSERVERS & INIT ---
-
-  function handleNavigation() {
-    debugLog('Navigation detected, URL:', location.href);
+  /**
+   * Perform the actual UI injection
+   */
+  async function performInjection(video, container) {
+    debugLog('Performing injection...');
     
-    // Debounce: Prevent rapid-fire calls
+    // Final duplicate check
+    if (document.getElementById('yt-time-manager-container')) {
+      debugLog('UI already exists during performInjection, aborting');
+      return false;
+    }
+    
+    // Load settings and create UI
+    await loadSettings();
+    const ui = await loadUI();
+    
+    if (!ui) {
+      debugLog('Failed to load UI');
+      return false;
+    }
+    
+    // Inject into correct position
+    if (container.id === 'secondary') {
+      container.prepend(ui);
+    } else {
+      // For watch-flexy or other containers
+      const insertTarget = document.querySelector('#secondary') || container;
+      if (insertTarget.id === 'secondary') {
+        insertTarget.prepend(ui);
+      } else {
+        insertTarget.parentNode.insertBefore(ui, insertTarget);
+      }
+    }
+    
+    // Start updates
+    if (updateInterval) {
+      clearInterval(updateInterval);
+    }
+    updateInterval = setInterval(() => updateUI(video), 1000);
+    updateUI(video);
+    
+    debugLog('UI injected successfully');
+    return true;
+  }
+
+  /**
+   * Main injection coordinator
+   */
+  async function injectUI(injectionId) {
+    debugLog('=== injectUI called with ID:', injectionId, '===');
+    
+    // 1. Synchronous lock check
+    if (isInjecting) {
+      debugLog('Already injecting, skipping');
+      return;
+    }
+    
+    // 2. Early validation - must be on watch page
+    if (!isWatchPage()) {
+      debugLog('Not a watch page, skipping');
+      return;
+    }
+    
+    // 3. Get current video ID
+    const currentVideoId = getCurrentVideoId();
+    if (!currentVideoId) {
+      debugLog('No video ID found, skipping');
+      return;
+    }
+    
+    // 4. Check if same video already injected
+    if (injected && lastVideoId === currentVideoId) {
+      debugLog('Same video already injected, skipping');
+      return;
+    }
+    
+    // 5. Acquire lock
+    isInjecting = true;
+    debugLog('Starting injection for video:', currentVideoId);
+    
+    try {
+      // 6. Check injection ID before any async operations
+      if (injectionId !== currentInjectionId) {
+        debugLog('Stale injection ID (pre-async), aborting');
+        return;
+      }
+      
+      // 7. Cleanup previous instance (if any)
+      cleanup(false);
+      
+      // 8. Wait for YouTube to be ready
+      await waitForYouTubeReady();
+      
+      // 9. Check injection ID after first async
+      if (injectionId !== currentInjectionId) {
+        debugLog('Stale injection ID (post-YouTube-ready), aborting');
+        return;
+      }
+      
+      // 10. Wait for required elements
+      const elements = await waitForRequiredElements();
+      
+      // 11. Check injection ID after second async
+      if (injectionId !== currentInjectionId) {
+        debugLog('Stale injection ID (post-elements), aborting');
+        return;
+      }
+      
+      // 12. Validate elements were found
+      if (!elements || !elements.video || !elements.container) {
+        debugLog('Required elements not found:', elements);
+        return;
+      }
+      
+      // 13. Final page validation
+      if (!isWatchPage()) {
+        debugLog('No longer on watch page, aborting');
+        return;
+      }
+      
+      // 14. Perform injection
+      const success = await performInjection(elements.video, elements.container);
+      
+      if (success) {
+        injected = true;
+        lastVideoId = currentVideoId;
+        debugLog('=== Injection completed successfully ===');
+      } else {
+        debugLog('=== Injection failed ===');
+      }
+      
+    } catch (error) {
+      debugLog('Injection error:', error);
+    } finally {
+      // 15. Always release lock
+      isInjecting = false;
+    }
+  }
+
+  /**
+   * Enhanced cleanup with optional force mode
+   */
+  function cleanup(force = false) {
+    debugLog('Cleanup called, force:', force);
+    
+    // Remove UI
+    const existing = document.getElementById('yt-time-manager-container');
+    if (existing) {
+      existing.remove();
+      debugLog('UI removed');
+    }
+    
+    // Clear interval
+    if (updateInterval) {
+      clearInterval(updateInterval);
+      updateInterval = null;
+    }
+    
+    // Reset state
+    injected = false;
+    
+    if (force) {
+      // Force mode: reset everything including video tracking
+      lastVideoId = null;
+      playlistTargetIndex = null;
+      debugLog('Force cleanup: all state reset');
+    }
+  }
+
+  /**
+   * Handle navigation events
+   */
+  function handleNavigation() {
+    debugLog('Navigation event detected, URL:', location.href);
+    
+    // Clear any pending debounce
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
     }
     
+    // If leaving watch page, cleanup immediately
+    if (!isWatchPage()) {
+      debugLog('Left watch page, cleaning up');
+      cleanup(true);
+      return;
+    }
+    
+    // Debounce to avoid rapid-fire calls
     navigationDebounceTimer = setTimeout(() => {
+      // Increment injection ID (invalidates any in-flight injections)
       currentInjectionId++;
       const thisInjectionId = currentInjectionId;
-      debugLog('Triggering injection with ID:', thisInjectionId);
+      
+      debugLog('Debounced navigation, triggering injection ID:', thisInjectionId);
       injectUI(thisInjectionId);
-    }, 300); // 300ms debounce
+    }, 500); // Increased from 300ms for better stability
   }
 
-  function init() {
-    debugLog('Initializing YouTube Time Manager');
+  /**
+   * Observe page state changes
+   */
+  function observePageChanges() {
+    const ytdApp = document.querySelector('ytd-app');
+    if (!ytdApp) {
+      debugLog('ytd-app not found for observation');
+      return;
+    }
     
-    // 1. Primary: Listen for YouTube's custom navigation event
+    if (pageObserver) {
+      pageObserver.disconnect();
+    }
+    
+    pageObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes') {
+          const page = ytdApp.getAttribute('page');
+          debugLog('Page attribute changed to:', page);
+          
+          // If page changed away from watch, cleanup
+          if (page && page !== 'watch' && injected) {
+            debugLog('Page changed away from watch, cleaning up');
+            cleanup(true);
+          } else if (page === 'watch' || ytdApp.hasAttribute('is-watch-page')) {
+             // If page changed TO watch, trigger navigation
+             debugLog('Page changed to watch, triggering navigation');
+             handleNavigation();
+          }
+        }
+      }
+    });
+    
+    pageObserver.observe(ytdApp, {
+      attributes: true,
+      attributeFilter: ['page', 'is-watch-page']
+    });
+    
+    debugLog('Page observer started');
+  }
+
+  /**
+   * Initialize the extension
+   */
+  function init() {
+    debugLog('=== Initializing YouTube Time Manager ===');
+    
+    // 1. Load settings first
+    loadSettings().then(() => {
+      debugLog('Settings loaded');
+    });
+    
+    // 2. Listen for YouTube's primary navigation event
     document.addEventListener('yt-navigate-finish', handleNavigation);
     debugLog('Registered yt-navigate-finish listener');
     
-    // 2. Backup: URL change detection for edge cases
-    let lastUrl = location.href;
-    const urlCheckInterval = setInterval(() => {
-      if (location.href !== lastUrl) {
-        debugLog('URL change detected via polling');
-        lastUrl = location.href;
-        if (isValidWatchPage() && !isInjecting) {
-          handleNavigation();
-        }
-      }
-    }, 2000); // Check every 2 seconds
+    // 3. Listen for page data updates (additional safety)
+    document.addEventListener('yt-page-data-updated', handleNavigation);
+    debugLog('Registered yt-page-data-updated listener');
+
+    // 3.5 Listen for browser history changes (back/forward)
+    window.addEventListener('popstate', handleNavigation);
+    debugLog('Registered popstate listener');
     
-    // 3. Initial Load
+    // 4. Start observing page changes
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', observePageChanges);
+    } else {
+      observePageChanges();
+    }
+    
+    // 5. Handle initial page load
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        debugLog('DOMContentLoaded fired');
-        handleNavigation();
+        debugLog('DOMContentLoaded: checking initial page');
+        // Delay for SPA initialization
+        setTimeout(handleNavigation, 500);
       });
     } else {
-      debugLog('Document already ready');
-      handleNavigation();
+      debugLog('Document ready: checking initial page');
+      // Small delay to let YouTube's SPA initialize
+      setTimeout(handleNavigation, 500);
     }
+    
+    debugLog('=== Initialization complete ===');
   }
 
+  // Start the extension
   init();
 
 })();
