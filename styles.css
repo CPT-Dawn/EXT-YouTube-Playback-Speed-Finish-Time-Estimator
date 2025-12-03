@@ -32,75 +32,103 @@
 }
 
 /* --- Header Section --- */
+/* --- Header Section --- */
 .dt-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  margin-bottom: 8px;
 }
 
 /* Speed Control */
 .dt-speed-control {
-  background: var(--dt-card-bg);
-  border-radius: var(--dt-radius-sm);
-  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0; /* Gap handled by margin on buttons for animation */
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  max-width: 60px; /* Initial width for just the number */
 }
 
-.dt-speed-label {
-    font-size: 10px;
-    color: var(--dt-text-muted);
-    margin-bottom: 2px;
-}
-
-.dt-speed-wrapper {
-    display: flex;
-    flex-direction: column;
-}
-
-.dt-speed-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 500;
+.dt-speed-control:hover {
+    background: rgba(255, 255, 255, 0.12);
+    max-width: 140px; /* Expanded width */
+    gap: 8px; /* Add gap on hover */
 }
 
 .dt-speed-btn {
     cursor: pointer;
     color: var(--dt-text-muted);
-    font-size: 16px;
+    font-size: 18px;
     user-select: none;
-    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0; /* Hidden by default */
+    height: 20px;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: scale(0.8);
+    margin: 0;
+}
+
+.dt-speed-control:hover .dt-speed-btn {
+    width: 20px;
+    opacity: 1;
+    transform: scale(1);
 }
 
 .dt-speed-btn:hover {
     color: var(--dt-text-main);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#dt-speed-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dt-text-main);
+    min-width: 32px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* Main Clock */
 .dt-main-clock {
-    background: var(--dt-card-bg);
-    padding: 8px 24px;
-    border-radius: var(--dt-radius-sm);
-    font-size: 20px;
-    font-weight: 400;
+    font-size: 28px;
+    font-weight: 700;
     letter-spacing: 1px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    background: transparent;
+    padding: 0;
 }
 
 /* Settings Icon */
 .dt-settings-icon {
     cursor: pointer;
-    color: var(--dt-text-main);
+    color: var(--dt-text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
+    justify-self: end;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.dt-settings-icon:hover {
+    color: var(--dt-text-main);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .dt-settings-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 /* --- Section Cards --- */
