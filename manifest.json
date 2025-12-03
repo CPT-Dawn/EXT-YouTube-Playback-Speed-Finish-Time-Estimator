@@ -5,9 +5,7 @@
   "description": "Advanced time management suite for YouTube: Remaining time, Finishes at, Playlist calc, and more.",
   "permissions": ["scripting", "tabs", "storage"],
   "host_permissions": ["*://*.youtube.com/*"],
-  "background": {
-    "service_worker": "background.js"
-  },
+
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
