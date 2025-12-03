@@ -1,6 +1,5 @@
 (function () {
   let injected = false;
-  let lastUrl = location.href;
   let updateInterval = null;
   let playlistTargetIndex = null; // Store user preference
   let is24HourMode = true; // Default to 24h
@@ -10,12 +9,6 @@
 
 
   // --- 1. UTILITIES ---
-
-  function formatTime(seconds) {
-    if (isNaN(seconds) || seconds < 0) return "00:00:00";
-    const date = new Date(seconds * 1000);
-    return date.toISOString().substr(11, 8);
-  }
 
   function formatTimeShort(seconds) {
     if (isNaN(seconds) || seconds < 0) return "0:00";
@@ -292,178 +285,73 @@
 
   // --- 3. UI CONSTRUCTION ---
 
-  function createUI() {
-    const container = document.createElement('div');
-    container.id = 'yt-time-manager-container';
-    
-    const settingsIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
-    const videoIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H5v-2h6v2zm0-4H5V7h6v2zm8 4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>`;
-    const chapterIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>`;
-    const playlistIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>`;
+  async function loadUI() {
+    try {
+        const response = await fetch(chrome.runtime.getURL('overlay.html'));
+        const html = await response.text();
+        const container = document.createElement('div');
+        container.innerHTML = html;
+        const ui = container.firstElementChild;
+        
+        // Apply initial settings
+        const toggle24h = ui.querySelector('#dt-24h-toggle');
+        if (toggle24h) toggle24h.checked = is24HourMode;
+        
+        attachListeners(ui);
+        return ui;
+    } catch (e) {
+        console.error("Failed to load UI:", e);
+        return null;
+    }
+  }
 
-    // Helper to create details panel structure
-    const createDetailsPanel = (idPrefix, extraContent = '') => `
-        <div class="dt-details-panel">
-            ${extraContent}
-            <div class="dt-detail-header">
-                <span>Time Remaining</span>
-                <span>Speed</span>
-                <span>Finishing At</span>
-            </div>
-            <div id="${idPrefix}-details-list" class="dt-detail-list"></div>
-        </div>
-    `;
-
-    const playlistControls = `
-        <div class="dt-playlist-controls">
-            <span>Calculate until video:</span>
-            <div class="dt-input-wrapper">
-                <input type="number" id="dt-playlist-target-input" min="1" class="dt-playlist-input">
-                <span id="dt-playlist-total-count" class="dt-playlist-total">/ --</span>
-            </div>
-        </div>
-    `;
-
-    const settingsPanel = `
-        <div id="dt-settings-panel" class="dt-settings-panel hidden">
-            <div class="dt-setting-row">
-                <span>24-Hour Clock</span>
-                <label class="dt-toggle-switch">
-                    <input type="checkbox" id="dt-24h-toggle" ${is24HourMode ? 'checked' : ''}>
-                    <span class="dt-slider"></span>
-                </label>
-            </div>
-        </div>
-    `;
-
-    container.innerHTML = `
-      <!-- Header -->
-      <div class="dt-header">
-        <div class="dt-speed-control">
-            <div class="dt-speed-wrapper">
-                <span class="dt-speed-label">Cur. Speed:</span>
-                <div class="dt-speed-actions">
-                    <span id="dt-speed-down" class="dt-speed-btn">−</span>
-                    <span id="dt-speed-val">1.0</span>
-                    <span id="dt-speed-up" class="dt-speed-btn">+</span>
-                </div>
-            </div>
-        </div>
-        <div id="dt-current-clock" class="dt-main-clock">--:--:--</div>
-        <div class="dt-settings-icon" id="dt-settings-btn">${settingsIcon}</div>
-        ${settingsPanel}
-      </div>
-
-      <!-- Video Section -->
-      <div class="dt-section-card">
-        <div class="dt-section-header dt-color-video">
-            <span class="dt-icon">${videoIcon}</span>
-            <span>Video</span>
-            <div class="dt-progress-track">
-                <div id="dt-video-progress" class="dt-progress-fill dt-bg-video"></div>
-            </div>
-        </div>
-        <div class="dt-stats-row">
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Time Remaining:</span>
-                <span id="dt-video-remaining" class="dt-stat-value">--:--</span>
-            </div>
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Finishing At:</span>
-                <span id="dt-video-finish" class="dt-stat-value">--:--</span>
-            </div>
-        </div>
-        ${createDetailsPanel('dt-video')}
-      </div>
-
-      <!-- Chapter Section -->
-      <div id="dt-chapter-section" class="dt-section-card hidden">
-        <div class="dt-section-header dt-color-chapter">
-            <span class="dt-icon">${chapterIcon}</span>
-            <span id="dt-chapter-name">Chapter</span>
-            <div class="dt-progress-track">
-                <div id="dt-chapter-progress" class="dt-progress-fill dt-bg-chapter"></div>
-            </div>
-        </div>
-        <div class="dt-stats-row">
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Time Remaining:</span>
-                <span id="dt-chapter-remaining" class="dt-stat-value">--:--</span>
-            </div>
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Finishing At:</span>
-                <span id="dt-chapter-finish" class="dt-stat-value">--:--</span>
-            </div>
-        </div>
-        ${createDetailsPanel('dt-chapter')}
-      </div>
-
-      <!-- Playlist Section -->
-      <div id="dt-playlist-section" class="dt-section-card hidden">
-        <div class="dt-section-header dt-color-playlist">
-            <span class="dt-icon">${playlistIcon}</span>
-            <span>Playlist</span>
-            <div class="dt-progress-track">
-                <div id="dt-playlist-progress" class="dt-progress-fill dt-bg-playlist"></div>
-            </div>
-        </div>
-        <div class="dt-stats-row">
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Time Remaining:</span>
-                <span id="dt-playlist-remaining" class="dt-stat-value">--:--</span>
-            </div>
-            <div class="dt-stat-box">
-                <span class="dt-stat-label">Finishing At:</span>
-                <span id="dt-playlist-finish" class="dt-stat-value">--:--</span>
-            </div>
-        </div>
-        ${createDetailsPanel('dt-playlist', playlistControls)}
-      </div>
-    `;
-
+  function attachListeners(container) {
     const speedDown = container.querySelector('#dt-speed-down');
     const speedUp = container.querySelector('#dt-speed-up');
     const playlistInput = container.querySelector('#dt-playlist-target-input');
 
-    speedDown.addEventListener('click', () => changeSpeed(-0.25));
-    speedUp.addEventListener('click', () => changeSpeed(0.25));
+    if(speedDown) speedDown.addEventListener('click', () => changeSpeed(-0.25));
+    if(speedUp) speedUp.addEventListener('click', () => changeSpeed(0.25));
     
     // Playlist Input Listener
-    playlistInput.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        if (!isNaN(val) && val > 0) {
-            playlistTargetIndex = val;
-            const video = document.querySelector('video');
-            if (video) updateUI(video);
-        }
-    });
-
+    if(playlistInput) {
+        playlistInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            if (!isNaN(val) && val > 0) {
+                playlistTargetIndex = val;
+                const video = document.querySelector('video');
+                if (video) updateUI(video);
+            }
+        });
+    }
 
     // Settings Listeners
     const settingsBtn = container.querySelector('#dt-settings-btn');
     const settingsPanelEl = container.querySelector('#dt-settings-panel');
     const toggle24h = container.querySelector('#dt-24h-toggle');
 
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsPanelEl.classList.toggle('hidden');
-    });
+    if(settingsBtn && settingsPanelEl) {
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsPanelEl.classList.toggle('hidden');
+        });
 
-    // Close settings when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!settingsPanelEl.contains(e.target) && !settingsBtn.contains(e.target)) {
-            settingsPanelEl.classList.add('hidden');
-        }
-    });
+        // Close settings when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!settingsPanelEl.contains(e.target) && !settingsBtn.contains(e.target)) {
+                settingsPanelEl.classList.add('hidden');
+            }
+        });
+    }
 
-    toggle24h.addEventListener('change', (e) => {
-        is24HourMode = e.target.checked;
-        saveSettings();
-        const video = document.querySelector('video');
-        if (video) updateUI(video);
-    });
-
-    return container;
+    if(toggle24h) {
+        toggle24h.addEventListener('change', (e) => {
+            is24HourMode = e.target.checked;
+            saveSettings();
+            const video = document.querySelector('video');
+            if (video) updateUI(video);
+        });
+    }
   }
 
   function changeSpeed(delta) {
@@ -669,7 +557,11 @@
 
       // 9. Load settings and create UI
       await loadSettings();
-      const ui = createUI();
+      const ui = await loadUI();
+      if (!ui) {
+          debugLog('Failed to load UI');
+          return;
+      }
       
       if (container.id === 'secondary') {
         container.prepend(ui);
