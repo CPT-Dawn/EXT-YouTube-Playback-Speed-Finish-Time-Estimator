@@ -12,6 +12,8 @@
   const DEBUG = true; // Set to true for debugging
 
 
+  let lastTimeState = { h: null, m: null, s: null, ampm: null }; // Track flip clock state
+
   // --- 1. UTILITIES ---
 
   function formatTimeShort(seconds) {
@@ -302,6 +304,10 @@
         if (toggle24h) toggle24h.checked = is24HourMode;
         
         attachListeners(ui);
+        
+        // Initialize Flip Clock
+        initFlipClock(ui);
+        
         return ui;
     } catch (e) {
         console.error("Failed to load UI:", e);
@@ -396,6 +402,143 @@
     list.innerHTML = html;
   }
 
+  // --- 3.5 FLIP CLOCK LOGIC ---
+
+  function initFlipClock(container) {
+    const clockContainer = container.querySelector('#dt-flip-clock');
+    if (!clockContainer) return;
+
+    // Clear existing
+    clockContainer.innerHTML = '';
+
+    // Create units
+    const units = ['hours', 'minutes', 'seconds'];
+    
+    units.forEach((unit, index) => {
+        const unitEl = document.createElement('div');
+        unitEl.className = 'dt-flip-unit';
+        unitEl.id = `dt-unit-${unit}`;
+        
+        // Initial structure
+        unitEl.innerHTML = `
+            <div class="dt-flip-top"></div>
+            <div class="dt-flip-bottom"></div>
+            <div class="dt-flip-leaf-front"></div>
+            <div class="dt-flip-leaf-back"></div>
+        `;
+        
+        clockContainer.appendChild(unitEl);
+
+        // Add separator if not last
+        if (index < units.length - 1) {
+            const sep = document.createElement('div');
+            sep.className = 'dt-flip-separator';
+            sep.textContent = ':';
+            clockContainer.appendChild(sep);
+        }
+    });
+
+    // AM/PM Unit
+    const ampmEl = document.createElement('div');
+    ampmEl.className = 'dt-flip-ampm';
+    ampmEl.id = 'dt-unit-ampm';
+    clockContainer.appendChild(ampmEl);
+  }
+
+  function updateFlipClock(date) {
+    const hRaw = date.getHours();
+    const mRaw = date.getMinutes();
+    const sRaw = date.getSeconds();
+    
+    let h = hRaw;
+    let ampm = '';
+
+    if (!is24HourMode) {
+        ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        h = h ? h : 12; // the hour '0' should be '12'
+    }
+
+    const hStr = h.toString().padStart(2, '0');
+    const mStr = mRaw.toString().padStart(2, '0');
+    const sStr = sRaw.toString().padStart(2, '0');
+
+    flip('hours', hStr);
+    flip('minutes', mStr);
+    flip('seconds', sStr);
+    
+    // Update AM/PM text directly (no flip needed usually, or simple fade)
+    const ampmEl = document.getElementById('dt-unit-ampm');
+    if (ampmEl && lastTimeState.ampm !== ampm) {
+        ampmEl.textContent = ampm;
+        lastTimeState.ampm = ampm;
+    }
+  }
+
+  function flip(unit, newValue) {
+    const el = document.getElementById(`dt-unit-${unit}`);
+    if (!el) return;
+
+    const top = el.querySelector('.dt-flip-top');
+    const bottom = el.querySelector('.dt-flip-bottom');
+    const front = el.querySelector('.dt-flip-leaf-front');
+    const back = el.querySelector('.dt-flip-leaf-back');
+
+    if (!top || !bottom || !front || !back) return;
+
+    // Check if value changed
+    const currentValue = top.getAttribute('data-value');
+    if (currentValue === newValue) return;
+
+    // If first run (currentValue is null), just set it without animation
+    if (currentValue === null) {
+        top.setAttribute('data-value', newValue);
+        bottom.setAttribute('data-value', newValue);
+        front.setAttribute('data-value', newValue);
+        back.setAttribute('data-value', newValue);
+        return;
+    }
+
+    // Setup animation state
+    // Top: Current Value
+    // Bottom: New Value (revealed at end)
+    // Front: Current Value (flips down)
+    // Back: New Value (flips down to become bottom)
+
+    top.setAttribute('data-value', newValue); // Actually, top should be NEW value? No.
+    // Standard Flip Logic:
+    // Static Top: New Value
+    // Static Bottom: Old Value -> New Value (at end)
+    // Animating Front: Old Value
+    // Animating Back: New Value
+
+    // Let's refine:
+    // 1. Static Top shows NEW value immediately (behind the front leaf)
+    top.setAttribute('data-value', newValue);
+    
+    // 2. Static Bottom shows OLD value (until animation ends)
+    bottom.setAttribute('data-value', currentValue);
+
+    // 3. Front Leaf shows OLD value
+    front.setAttribute('data-value', currentValue);
+
+    // 4. Back Leaf shows NEW value
+    back.setAttribute('data-value', newValue);
+
+    // Remove animation classes to reset
+    el.classList.remove('flipping');
+    void el.offsetWidth; // Trigger reflow
+    el.classList.add('flipping');
+
+    // Cleanup after animation
+    // We can use a timeout matching the CSS animation duration (600ms)
+    setTimeout(() => {
+        bottom.setAttribute('data-value', newValue);
+        front.setAttribute('data-value', newValue); // FIX: Update front to new value so it matches when animation resets
+        el.classList.remove('flipping');
+    }, 600);
+  }
+
   function updateUI(video) {
     const container = document.getElementById('yt-time-manager-container');
     if (!container) return;
@@ -408,7 +551,9 @@
 
     // 1. Update Header
     document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
-    document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString([], { hour12: !is24HourMode });
+    document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
+    // document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString([], { hour12: !is24HourMode });
+    updateFlipClock(new Date());
 
     // 2. Update Video Section
     const videoRemainingRaw = duration - currentTime;
