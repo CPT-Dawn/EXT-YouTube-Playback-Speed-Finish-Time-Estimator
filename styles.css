@@ -435,7 +435,7 @@
 .dt-section-card:hover .dt-details-panel {
     max-height: 500px; /* Arbitrary large height */
     opacity: 1;
-    margin-top: 8px;
+    margin-top: 16px; /* Increased breathing room */
     padding-top: 12px;
 }
 
@@ -465,9 +465,14 @@
     color: var(--dt-text-muted);
 }
 
+.dt-detail-row.active span:nth-child(2) {
+    font-weight: 700;
+    color: #fff;
+}
+
 .dt-detail-row.active {
     border: 1px solid; /* Color will be inherited or set specifically */
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15); /* Increased opacity for visibility */
     color: var(--dt-text-main);
     font-weight: 500;
 }
@@ -505,8 +510,10 @@
 }
 
 .dt-playlist-input {
-    background: transparent;
-    border: none;
+    background: #2A2A2A;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    padding: 2px 4px;
     color: var(--dt-text-main);
     font-family: var(--dt-font-mono);
     font-size: 12px;
@@ -583,8 +590,8 @@
 
 .dt-input-group input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #2A2A2A;
+    border: 1px solid #444444;
     border-radius: 4px;
     padding: 6px;
     color: var(--dt-text-main);
@@ -600,7 +607,7 @@
 }
 
 .dt-input-group input::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+    color: #888;
 }
 
 /* Split Inputs */
@@ -616,8 +623,8 @@
 
 .dt-time-input {
     width: 24px;
-    background: rgba(0, 0, 0, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: #2A2A2A !important;
+    border: 1px solid #444444 !important;
     border-radius: 4px;
     padding: 4px 0 !important;
     text-align: center;
@@ -634,7 +641,7 @@
 }
 
 .dt-time-input::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+    color: #888;
 }
 
 .dt-sep {
