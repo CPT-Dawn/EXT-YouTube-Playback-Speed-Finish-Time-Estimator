@@ -362,6 +362,116 @@
             if (video) updateUI(video);
         });
     }
+
+    // Custom Target Listeners
+    attachCustomTargetListeners(container, 'video');
+    attachCustomTargetListeners(container, 'chapter');
+    attachCustomTargetListeners(container, 'playlist');
+  }
+
+  function attachCustomTargetListeners(container, type) {
+    const durationInput = container.querySelector(`#dt-${type}-custom-duration`);
+    const speedInput = container.querySelector(`#dt-${type}-custom-speed`);
+    const finishInput = container.querySelector(`#dt-${type}-custom-finish`);
+
+    if (!durationInput || !speedInput || !finishInput) return;
+
+    function getRemainingContent() {
+        const video = document.querySelector('video');
+        if (!video) return 0;
+        
+        if (type === 'video') {
+            return video.duration - video.currentTime;
+        } else if (type === 'chapter') {
+            const chapterInfo = getChapterInfo(video);
+            return chapterInfo ? chapterInfo.remaining : 0;
+        } else if (type === 'playlist') {
+            const playlistInfo = getPlaylistInfo(video, playlistTargetIndex);
+            return playlistInfo ? playlistInfo.totalSeconds : 0;
+        }
+        return 0;
+    }
+
+    function updateSpeed(newSpeed) {
+        const video = document.querySelector('video');
+        if (video) {
+            if (newSpeed < 0.25) newSpeed = 0.25;
+            if (newSpeed > 16) newSpeed = 16;
+            video.playbackRate = newSpeed;
+            updateUI(video);
+        }
+    }
+
+    // 1. Duration Input (Target Time Remaining)
+    durationInput.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const targetSeconds = parseDuration(val);
+        const contentRemaining = getRemainingContent();
+        
+        if (targetSeconds > 0 && contentRemaining > 0) {
+            const requiredSpeed = contentRemaining / targetSeconds;
+            updateSpeed(requiredSpeed);
+            // Inputs will be updated by updateUI loop
+            durationInput.blur(); // Remove focus to allow updateUI to take over
+        }
+    });
+
+    // 2. Speed Input (Target Speed)
+    speedInput.addEventListener('change', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+            updateSpeed(val);
+            speedInput.blur();
+        }
+    });
+
+    // 3. Finish Time Input (Target Finish Time)
+    finishInput.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const now = new Date();
+        const parts = val.split(':').map(Number);
+        
+        if (parts.length >= 2) {
+            let targetDate = new Date(now);
+            targetDate.setHours(parts[0]);
+            targetDate.setMinutes(parts[1]);
+            targetDate.setSeconds(0);
+            
+            if (targetDate < now) {
+                targetDate.setDate(targetDate.getDate() + 1);
+            }
+
+            const secondsUntilFinish = (targetDate - now) / 1000;
+            const contentRemaining = getRemainingContent();
+
+            if (secondsUntilFinish > 0 && contentRemaining > 0) {
+                const requiredSpeed = contentRemaining / secondsUntilFinish;
+                updateSpeed(requiredSpeed);
+                finishInput.blur();
+            }
+        }
+    });
+  }
+
+  function updateCustomInputs(type, remainingSeconds, speed) {
+      const durationInput = document.getElementById(`dt-${type}-custom-duration`);
+      const speedInput = document.getElementById(`dt-${type}-custom-speed`);
+      const finishInput = document.getElementById(`dt-${type}-custom-finish`);
+
+      if (!durationInput || !speedInput || !finishInput) return;
+
+      // Only update if NOT focused (user is not typing)
+      if (document.activeElement !== durationInput) {
+          durationInput.value = formatTimeShort(remainingSeconds / speed);
+      }
+      
+      if (document.activeElement !== speedInput) {
+          speedInput.value = speed.toFixed(2);
+      }
+
+      if (document.activeElement !== finishInput) {
+          finishInput.value = getFinishTime(remainingSeconds / speed);
+      }
   }
 
   function changeSpeed(delta) {
@@ -566,6 +676,7 @@
 
     // Update Video Details
     updateDetailsList('dt-video-details-list', videoRemainingRaw, playbackRate, 'video-active');
+    updateCustomInputs('video', videoRemainingRaw, playbackRate);
 
     // 3. Update Chapter Section
     const chapterInfo = getChapterInfo(video);
@@ -584,6 +695,7 @@
 
         // Update Chapter Details (using raw remaining time for calculation)
         updateDetailsList('dt-chapter-details-list', chapterInfo.remaining, playbackRate, 'chapter-active');
+        updateCustomInputs('chapter', chapterInfo.remaining, playbackRate);
     } else {
         chapterSection.classList.add('hidden');
     }
@@ -622,6 +734,7 @@
 
         // Update Playlist Details
         updateDetailsList('dt-playlist-details-list', playlistInfo.totalSeconds, playbackRate, 'playlist-active');
+        updateCustomInputs('playlist', playlistInfo.totalSeconds, playbackRate);
     } else {
         playlistSection.classList.add('hidden');
     }
