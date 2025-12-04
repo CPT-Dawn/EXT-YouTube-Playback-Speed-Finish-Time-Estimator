@@ -6,9 +6,9 @@
   --dt-text-muted: #aaaaaa;
   
   /* Section Colors */
-  --dt-color-video: #ff0000; /* Red */
-  --dt-color-chapter: #00ff00; /* Green */
-  --dt-color-playlist: #0099ff; /* Blue */
+  --dt-color-video: #FF0000; /* YouTube Red */
+  --dt-color-chapter: #2BA640; /* Harmonious Green */
+  --dt-color-playlist: #3EA6FF; /* YouTube Blue */
   
   --dt-font-main: "Roboto", "Arial", sans-serif;
   --dt-radius: 12px;
