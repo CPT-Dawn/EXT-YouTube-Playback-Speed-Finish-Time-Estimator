@@ -371,11 +371,19 @@
   }
 
   function attachCustomTargetListeners(container, type) {
-    const durationInput = container.querySelector(`#dt-${type}-custom-duration`);
+    // Duration Inputs
+    const durH = container.querySelector(`#dt-${type}-custom-duration-container input[data-unit="h"]`);
+    const durM = container.querySelector(`#dt-${type}-custom-duration-container input[data-unit="m"]`);
+    
+    // Speed Input
     const speedInput = container.querySelector(`#dt-${type}-custom-speed`);
-    const finishInput = container.querySelector(`#dt-${type}-custom-finish`);
+    
+    // Finish Inputs
+    const finH = container.querySelector(`#dt-${type}-custom-finish-container input[data-unit="h"]`);
+    const finM = container.querySelector(`#dt-${type}-custom-finish-container input[data-unit="m"]`);
+    const finAmpm = container.querySelector(`#dt-${type}-custom-finish-container .dt-ampm-select`);
 
-    if (!durationInput || !speedInput || !finishInput) return;
+    if (!durH || !speedInput || !finH) return;
 
     function getRemainingContent() {
         const video = document.querySelector('video');
@@ -403,24 +411,56 @@
         }
     }
 
-    // 1. Duration Input (Target Time Remaining)
-    durationInput.addEventListener('change', (e) => {
-        customTargetActive[type] = true; // Mark as active
-        const val = e.target.value;
-        const targetSeconds = parseDuration(val);
-        const contentRemaining = getRemainingContent();
+    // Helper to get total seconds from duration inputs
+    function getDurationSeconds() {
+        const h = parseInt(durH.value) || 0;
+        const m = parseInt(durM.value) || 0;
+        return h * 3600 + m * 60;
+    }
+
+    // Helper to get target date from finish inputs
+    function getFinishDate() {
+        const now = new Date();
+        let h = parseInt(finH.value);
+        const m = parseInt(finM.value) || 0;
         
-        if (targetSeconds > 0 && contentRemaining > 0) {
-            const requiredSpeed = contentRemaining / targetSeconds;
-            updateSpeed(requiredSpeed);
-            // Inputs will be updated by updateUI loop
-            durationInput.blur(); // Remove focus to allow updateUI to take over
+        if (isNaN(h)) return null;
+
+        if (!is24HourMode && finAmpm) {
+            const ampm = finAmpm.value;
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
         }
+
+        let targetDate = new Date(now);
+        targetDate.setHours(h);
+        targetDate.setMinutes(m);
+        targetDate.setSeconds(0);
+
+        if (targetDate < now) {
+            targetDate.setDate(targetDate.getDate() + 1);
+        }
+        return targetDate;
+    }
+
+    // 1. Duration Inputs
+    [durH, durM].forEach(input => {
+        input.addEventListener('change', () => {
+            customTargetActive[type] = true;
+            const targetSeconds = getDurationSeconds();
+            const contentRemaining = getRemainingContent();
+            
+            if (targetSeconds > 0 && contentRemaining > 0) {
+                const requiredSpeed = contentRemaining / targetSeconds;
+                updateSpeed(requiredSpeed);
+                durH.blur(); durM.blur();
+            }
+        });
     });
 
-    // 2. Speed Input (Target Speed)
+    // 2. Speed Input
     speedInput.addEventListener('change', (e) => {
-        customTargetActive[type] = true; // Mark as active
+        customTargetActive[type] = true;
         const val = parseFloat(e.target.value);
         if (!isNaN(val) && val > 0) {
             updateSpeed(val);
@@ -428,56 +468,78 @@
         }
     });
 
-    // 3. Finish Time Input (Target Finish Time)
-    finishInput.addEventListener('change', (e) => {
-        customTargetActive[type] = true; // Mark as active
-        const val = e.target.value;
-        const now = new Date();
-        const parts = val.split(':').map(Number);
-        
-        if (parts.length >= 2) {
-            let targetDate = new Date(now);
-            targetDate.setHours(parts[0]);
-            targetDate.setMinutes(parts[1]);
-            targetDate.setSeconds(0);
-            
-            if (targetDate < now) {
-                targetDate.setDate(targetDate.getDate() + 1);
-            }
+    // 3. Finish Inputs
+    [finH, finM, finAmpm].forEach(input => {
+        input.addEventListener('change', () => {
+            customTargetActive[type] = true;
+            const targetDate = getFinishDate();
+            if (!targetDate) return;
 
+            const now = new Date();
             const secondsUntilFinish = (targetDate - now) / 1000;
             const contentRemaining = getRemainingContent();
 
             if (secondsUntilFinish > 0 && contentRemaining > 0) {
                 const requiredSpeed = contentRemaining / secondsUntilFinish;
                 updateSpeed(requiredSpeed);
-                finishInput.blur();
+                finH.blur(); finM.blur();
             }
-        }
+        });
     });
   }
 
   function updateCustomInputs(type, remainingSeconds, speed) {
-      // Only update if user has interacted with this section
+      const container = document.getElementById('yt-time-manager-container');
+      const durH = container.querySelector(`#dt-${type}-custom-duration-container input[data-unit="h"]`);
+      const durM = container.querySelector(`#dt-${type}-custom-duration-container input[data-unit="m"]`);
+      
+      const speedInput = document.getElementById(`dt-${type}-custom-speed`);
+      
+      const finH = container.querySelector(`#dt-${type}-custom-finish-container input[data-unit="h"]`);
+      const finM = container.querySelector(`#dt-${type}-custom-finish-container input[data-unit="m"]`);
+      const finAmpm = container.querySelector(`#dt-${type}-custom-finish-container .dt-ampm-select`);
+
+      if (!durH || !speedInput || !finH) return;
+
+      // Update AM/PM visibility (Always update this, regardless of interaction)
+      if (finAmpm) {
+          if (is24HourMode) finAmpm.classList.add('hidden');
+          else finAmpm.classList.remove('hidden');
+      }
+
+      // Only update values if user has interacted with this section
       if (!customTargetActive[type]) return;
 
-      const durationInput = document.getElementById(`dt-${type}-custom-duration`);
-      const speedInput = document.getElementById(`dt-${type}-custom-speed`);
-      const finishInput = document.getElementById(`dt-${type}-custom-finish`);
-
-      if (!durationInput || !speedInput || !finishInput) return;
-
-      // Only update if NOT focused (user is not typing)
-      if (document.activeElement !== durationInput) {
-          durationInput.value = formatTimeShort(remainingSeconds / speed);
+      // Calculate Duration
+      const targetDuration = remainingSeconds / speed;
+      if (document.activeElement !== durH && document.activeElement !== durM) {
+          const h = Math.floor(targetDuration / 3600);
+          const m = Math.floor((targetDuration % 3600) / 60);
+          durH.value = h.toString().padStart(2, '0');
+          durM.value = m.toString().padStart(2, '0');
       }
       
+      // Update Speed
       if (document.activeElement !== speedInput) {
           speedInput.value = speed.toFixed(2);
       }
 
-      if (document.activeElement !== finishInput) {
-          finishInput.value = getFinishTime(remainingSeconds / speed);
+      // Calculate Finish Time
+      if (document.activeElement !== finH && document.activeElement !== finM && document.activeElement !== finAmpm) {
+          const finishDate = new Date(Date.now() + targetDuration * 1000);
+          let h = finishDate.getHours();
+          const m = finishDate.getMinutes();
+          let ampm = '';
+
+          if (!is24HourMode) {
+              ampm = h >= 12 ? 'PM' : 'AM';
+              h = h % 12;
+              h = h ? h : 12;
+              if (finAmpm) finAmpm.value = ampm;
+          }
+
+          finH.value = h.toString().padStart(2, '0');
+          finM.value = m.toString().padStart(2, '0');
       }
   }
 
