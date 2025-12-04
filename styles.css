@@ -10,7 +10,7 @@
   --dt-color-chapter: #00ff00; /* Green */
   --dt-color-playlist: #0099ff; /* Blue */
   
-  --dt-font-main: "Roboto", sans-serif;
+  --dt-font-main: "Roboto", "Arial", sans-serif;
   --dt-radius: 12px;
   --dt-radius-sm: 8px;
 }
@@ -106,6 +106,7 @@
     text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     background: transparent;
     padding: 0;
+    font-family: "Roboto", "Arial", sans-serif;
 }
 
 /* Settings Icon */
@@ -206,8 +207,9 @@
 }
 
 .dt-stat-value {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 500;
+    font-family: "Roboto", "Arial", sans-serif;
 }
 
 /* --- Expandable Details Panel --- */
