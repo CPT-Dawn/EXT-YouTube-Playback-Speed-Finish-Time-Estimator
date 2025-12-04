@@ -174,6 +174,20 @@
     font-weight: 700;
 }
 
+/* Static Axis Line */
+.dt-flip-unit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px; /* Thin line */
+    background: rgba(0,0,0,0.6); /* Dark divider color */
+    transform: translateY(-50%);
+    z-index: 5; /* Above the leaves */
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05); /* Subtle highlight below */
+}
+
 .dt-flip-top, .dt-flip-bottom, .dt-flip-leaf-front, .dt-flip-leaf-back {
     position: absolute;
     left: 0;
@@ -191,7 +205,7 @@
     transform-origin: 50% 100%;
     /* Gradient for top half: lighter at top, darker at bottom */
     background: linear-gradient(to bottom, #333 0%, #222 100%);
-    border-bottom: 1px solid rgba(0,0,0,0.5);
+    /* Border removed */
 }
 
 .dt-flip-bottom, .dt-flip-leaf-back {
@@ -200,7 +214,7 @@
     transform-origin: 50% 0%;
     /* Gradient for bottom half: darker at top, lighter at bottom */
     background: linear-gradient(to bottom, #222 0%, #333 100%);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    /* Border removed */
     line-height: 0; 
     display: flex;
     justify-content: center;
