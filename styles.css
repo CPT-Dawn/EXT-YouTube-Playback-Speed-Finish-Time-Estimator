@@ -35,9 +35,21 @@
 /* --- Header Section --- */
 .dt-header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto 1fr; /* Three columns: Left, Center, Right */
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 24px;
+  gap: 0; /* Gap not strictly needed with 1fr spacers, but can keep small if needed */
+  height: 44px;
+  position: relative;
+}
+
+/* Speed Control Wrapper */
+.dt-speed-wrapper {
+    position: relative;
+    width: 38px; /* Match settings icon size */
+    height: 38px;
+    z-index: 20;
+    justify-self: start; /* Align to left edge */
 }
 
 /* Speed Control - Vertical Expansion */
@@ -49,19 +61,28 @@
   flex-direction: column; /* Vertical layout */
   align-items: center;
   gap: 0;
-  width: 54px; /* Fixed width */
+  width: 100%; /* Fill wrapper (38px) */
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  max-height: 34px; /* Initial height (approx text height + padding) */
-  position: relative;
+  max-height: 38px; /* Initial height (circle) */
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%); /* Center vertically */
   z-index: 10;
+  border-radius: 50%; /* Circle by default */
+  padding: 0; /* Remove padding to fit text */
+  justify-content: center;
 }
 
 .dt-speed-control:hover {
     background: rgba(255, 255, 255, 0.12);
-    max-height: 120px; /* Expanded height */
+    max-height: 128px; /* Increased to fit content (122px needed) */
     gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border-radius: 19px; /* Pill shape on hover */
+    padding: 6px 0; /* Add vertical padding on hover */
 }
 
 .dt-speed-btn {
@@ -72,35 +93,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    width: 28px; /* Circular button */
     height: 0; /* Hidden by default */
-    border-radius: 4px;
+    border-radius: 50%;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     transform: scale(0.8);
     margin: 0;
+    background: transparent;
 }
 
 .dt-speed-control:hover .dt-speed-btn {
-    height: 24px;
+    height: 28px; /* Circular button */
     opacity: 1;
     transform: scale(1);
+    background: rgba(255, 255, 255, 0.05); /* Visible default background */
 }
 
 .dt-speed-btn:hover {
     color: var(--dt-text-main);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 #dt-speed-val {
-    font-size: 14px;
+    font-size: 12px; /* Smaller font to fit in circle */
     font-weight: 600;
     color: var(--dt-text-main);
     text-align: center;
     white-space: nowrap;
-    height: 20px; /* Fixed height for value */
-    line-height: 20px;
+    height: 38px; /* Match circle height */
+    line-height: 38px;
     order: 0; /* Middle */
+    width: 100%;
 }
 
 #dt-speed-up {
@@ -117,6 +141,7 @@
     justify-content: center;
     align-items: center;
     padding: 4px 0;
+    justify-self: center; /* Align to center */
 }
 
 .dt-flip-clock {
@@ -276,10 +301,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    justify-self: end;
     padding: 8px;
     border-radius: 50%;
     transition: all 0.2s;
+    justify-self: end; /* Align to right edge */
 }
 
 .dt-settings-icon:hover {
