@@ -13,6 +13,7 @@
 
 
   let lastTimeState = { h: null, m: null, s: null, ampm: null }; // Track flip clock state
+  let customTargetActive = { video: false, chapter: false, playlist: false }; // Track custom target interaction
 
   // --- 1. UTILITIES ---
 
@@ -404,6 +405,7 @@
 
     // 1. Duration Input (Target Time Remaining)
     durationInput.addEventListener('change', (e) => {
+        customTargetActive[type] = true; // Mark as active
         const val = e.target.value;
         const targetSeconds = parseDuration(val);
         const contentRemaining = getRemainingContent();
@@ -418,6 +420,7 @@
 
     // 2. Speed Input (Target Speed)
     speedInput.addEventListener('change', (e) => {
+        customTargetActive[type] = true; // Mark as active
         const val = parseFloat(e.target.value);
         if (!isNaN(val) && val > 0) {
             updateSpeed(val);
@@ -427,6 +430,7 @@
 
     // 3. Finish Time Input (Target Finish Time)
     finishInput.addEventListener('change', (e) => {
+        customTargetActive[type] = true; // Mark as active
         const val = e.target.value;
         const now = new Date();
         const parts = val.split(':').map(Number);
@@ -454,6 +458,9 @@
   }
 
   function updateCustomInputs(type, remainingSeconds, speed) {
+      // Only update if user has interacted with this section
+      if (!customTargetActive[type]) return;
+
       const durationInput = document.getElementById(`dt-${type}-custom-duration`);
       const speedInput = document.getElementById(`dt-${type}-custom-speed`);
       const finishInput = document.getElementById(`dt-${type}-custom-finish`);
