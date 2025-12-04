@@ -185,7 +185,7 @@
     height: 100%;
     border-radius: 3px;
     width: 0%;
-    transition: width 0.2s linear;
+    transition: width 0.1s linear;
 }
 
 /* Stats Row */
@@ -328,13 +328,22 @@
 
 /* Colors */
 .dt-color-video { color: var(--dt-color-video); }
-.dt-bg-video { background-color: var(--dt-color-video); }
+.dt-bg-video {
+    background: linear-gradient(90deg, #FF0000 0%, #FF6B6B 100%);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
 
 .dt-color-chapter { color: var(--dt-color-chapter); }
-.dt-bg-chapter { background-color: var(--dt-color-chapter); }
+.dt-bg-chapter {
+    background: linear-gradient(90deg, #2BA640 0%, #69F0AE 100%);
+    box-shadow: 0 0 10px rgba(43, 166, 64, 0.4);
+}
 
 .dt-color-playlist { color: var(--dt-color-playlist); }
-.dt-bg-playlist { background-color: var(--dt-color-playlist); }
+.dt-bg-playlist {
+    background: linear-gradient(90deg, #065FD4 0%, #3EA6FF 100%);
+    box-shadow: 0 0 10px rgba(62, 166, 255, 0.4);
+}
 
 /* Utility */
 .hidden { display: none !important; }

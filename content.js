@@ -696,7 +696,7 @@
     if (updateInterval) {
       clearInterval(updateInterval);
     }
-    updateInterval = setInterval(() => updateUI(video), 1000);
+    updateInterval = setInterval(() => updateUI(video), 100);
     updateUI(video);
     
     debugLog('UI injected successfully');
