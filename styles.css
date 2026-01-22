@@ -431,18 +431,22 @@ input, textarea {
 
 /* --- Expandable Details Panel --- */
 .dt-details-panel {
-    max-height: 0;
-    opacity: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
     margin-top: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform-origin: top;
+    transform: scaleY(0);
+    opacity: 0;
+    max-height: 0;
+    will-change: transform, opacity;
 }
 
 .dt-section-card:hover .dt-details-panel {
-    max-height: 500px; /* Arbitrary large height */
+    transform: scaleY(1);
     opacity: 1;
-    margin-top: 16px; /* Increased breathing room */
+    max-height: 600px; /* Fallback for content */
+    margin-top: 16px;
     padding-top: 12px;
 }
 
@@ -453,6 +457,13 @@ input, textarea {
     color: var(--dt-text-muted);
     margin-bottom: 8px;
     padding: 0 12px;
+    opacity: 0;
+    transform: translateY(-4px);
+    animation: fadeSlideIn 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.dt-section-card:hover .dt-detail-header {
+    animation-delay: 0.02s;
 }
 
 .dt-detail-list {
@@ -470,6 +481,29 @@ input, textarea {
     padding: 8px 12px;
     font-size: 14px;
     color: var(--dt-text-muted);
+    opacity: 0;
+    transform: translateY(-4px);
+    animation: fadeSlideIn 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+/* Staggered animation delays */
+.dt-section-card:hover .dt-detail-row:nth-child(1) { animation-delay: 0.05s; }
+.dt-section-card:hover .dt-detail-row:nth-child(2) { animation-delay: 0.08s; }
+.dt-section-card:hover .dt-detail-row:nth-child(3) { animation-delay: 0.11s; }
+.dt-section-card:hover .dt-detail-row:nth-child(4) { animation-delay: 0.14s; }
+.dt-section-card:hover .dt-detail-row:nth-child(5) { animation-delay: 0.17s; }
+.dt-section-card:hover .dt-detail-row:nth-child(6) { animation-delay: 0.20s; }
+.dt-section-card:hover .dt-detail-row:nth-child(7) { animation-delay: 0.23s; }
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Make speed rows clickable */
@@ -597,6 +631,13 @@ input, textarea {
     padding: 8px 12px;
     margin-top: 8px;
     border: 1px dashed rgba(255, 255, 255, 0.1); /* Dashed border to indicate "input area" */
+    opacity: 0;
+    transform: translateY(-4px);
+    animation: fadeSlideIn 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.dt-section-card:hover .dt-custom-target-row {
+    animation-delay: 0.26s; /* After all rows */
 }
 
 .dt-custom-col {
