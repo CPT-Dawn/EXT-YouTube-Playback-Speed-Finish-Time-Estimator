@@ -564,21 +564,83 @@
         speeds.sort((a, b) => a - b);
     }
 
-    let html = '';
-    speeds.forEach(speed => {
-        const adjustedRemaining = remainingSeconds / speed;
-        const isActive = speed === currentSpeed;
-        const activeClassStr = isActive ? `active ${activeClass}` : '';
+    // Check if we need to rebuild the structure (speed list changed)
+    const currentSpeeds = Array.from(list.querySelectorAll('.dt-speed-clickable'))
+        .map(row => parseFloat(row.dataset.speed));
+    const speedsChanged = currentSpeeds.length !== speeds.length || 
+        !speeds.every((speed, i) => speed === currentSpeeds[i]);
+
+    if (speedsChanged || list.children.length === 0) {
+        // Rebuild HTML structure only when necessary
+        let html = '';
+        speeds.forEach(speed => {
+            const adjustedRemaining = remainingSeconds / speed;
+            const isActive = speed === currentSpeed;
+            const activeClassStr = isActive ? `active ${activeClass}` : '';
+            
+            html += `
+                <div class="dt-detail-row ${activeClassStr} dt-speed-clickable" data-speed="${speed}">
+                    <span class="dt-time-remaining">${formatTimeShort(adjustedRemaining)}</span>
+                    <span class="dt-speed-value">${speed}x</span>
+                    <span class="dt-finish-time">${getFinishTime(adjustedRemaining)}</span>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
         
-        html += `
-            <div class="dt-detail-row ${activeClassStr}">
-                <span>${formatTimeShort(adjustedRemaining)}</span>
-                <span>${speed}x</span>
-                <span>${getFinishTime(adjustedRemaining)}</span>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
+        // Attach event listener only once
+        if (!list.dataset.listenerAttached) {
+            list.addEventListener('click', (e) => {
+                const row = e.target.closest('.dt-speed-clickable');
+                if (row) {
+                    const newSpeed = parseFloat(row.dataset.speed);
+                    const video = document.querySelector('video');
+                    if (video && newSpeed) {
+                        video.playbackRate = newSpeed;
+                        updateUI(video);
+                    }
+                }
+            });
+            list.dataset.listenerAttached = 'true';
+        }
+    } else {
+        // Just update text content of existing elements (no flickering!)
+        const rows = list.querySelectorAll('.dt-speed-clickable');
+        speeds.forEach((speed, index) => {
+            const row = rows[index];
+            if (!row) return;
+            
+            const adjustedRemaining = remainingSeconds / speed;
+            const isActive = speed === currentSpeed;
+            
+            // Update active state
+            if (isActive) {
+                if (!row.classList.contains('active')) {
+                    row.classList.add('active', activeClass);
+                }
+            } else {
+                row.classList.remove('active', activeClass);
+            }
+            
+            // Update text content only
+            const timeRemaining = row.querySelector('.dt-time-remaining');
+            const finishTime = row.querySelector('.dt-finish-time');
+            
+            if (timeRemaining) {
+                const newTime = formatTimeShort(adjustedRemaining);
+                if (timeRemaining.textContent !== newTime) {
+                    timeRemaining.textContent = newTime;
+                }
+            }
+            
+            if (finishTime) {
+                const newFinish = getFinishTime(adjustedRemaining);
+                if (finishTime.textContent !== newFinish) {
+                    finishTime.textContent = newFinish;
+                }
+            }
+        });
+    }
   }
 
   // --- 3.5 FLIP CLOCK LOGIC ---

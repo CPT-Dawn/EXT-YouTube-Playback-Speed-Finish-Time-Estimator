@@ -472,6 +472,24 @@ input, textarea {
     color: var(--dt-text-muted);
 }
 
+/* Make speed rows clickable */
+.dt-detail-row.dt-speed-clickable {
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effect */
+.dt-detail-row.dt-speed-clickable:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateX(2px);
+}
+
+/* Click/Press effect */
+.dt-detail-row.dt-speed-clickable:active {
+    transform: scale(0.98) translateX(2px);
+    background: rgba(255, 255, 255, 0.18);
+}
+
 .dt-detail-row.active span:nth-child(2) {
     font-weight: 700;
     color: #fff;
@@ -482,6 +500,13 @@ input, textarea {
     background: rgba(255, 255, 255, 0.15); /* Increased opacity for visibility */
     color: var(--dt-text-main);
     font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Prevent hover transform on active row (keep it in place) */
+.dt-detail-row.active.dt-speed-clickable:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Specific active border colors */
