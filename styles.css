@@ -788,3 +788,183 @@ input:checked + .dt-slider {
 input:checked + .dt-slider:before {
     transform: translateX(20px);
 }
+
+/* === AD CARD & CARD TRANSITIONS === */
+
+/* Card transition animations */
+.dt-section-card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    will-change: transform, opacity;
+}
+
+.dt-section-card.dt-visible {
+    animation: cardSlideIn 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.dt-section-card.dt-hiding {
+    animation: cardSlideOut 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes cardSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+}
+
+/* Ad Card Styling */
+.dt-ad-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dt-ad-content {
+    text-align: center;
+    padding: 24px;
+}
+
+.dt-ad-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--dt-text-main);
+    margin: 16px 0 8px;
+    letter-spacing: 0.5px;
+}
+
+.dt-ad-message {
+    font-size: 15px;
+    color: var(--dt-text-muted);
+    margin: 8px 0;
+    transition: opacity 0.3s ease;
+    min-height: 24px;
+}
+
+.dt-ad-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 16px;
+    font-style: italic;
+}
+
+/* Coffee Cup Animation */
+.dt-coffee-animation {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.dt-cup-body {
+    width: 70px;
+    height: 60px;
+    border: 4px solid #8b4513;
+    border-radius: 0 0 15px 15px;
+    border-top: none;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(to top, 
+        #6F4E37 0%, 
+        #6F4E37 20%,
+        transparent 20%
+    );
+    animation: fillCoffee 3s ease-in-out infinite;
+    overflow: hidden;
+}
+
+.dt-cup-body::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    height: 10px;
+    background: #8b4513;
+    border-radius: 50%;
+}
+
+.dt-cup-handle {
+    width: 24px;
+    height: 32px;
+    border: 4px solid #8b4513;
+    border-left: none;
+    border-radius: 0 15px 15px 0;
+    position: absolute;
+    right: -22px;
+    top: 12px;
+}
+
+.dt-steam {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+}
+
+.dt-steam-line {
+    width: 3px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 2px;
+    animation: steam 2s ease-in-out infinite;
+}
+
+.dt-steam-line:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.dt-steam-line:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes fillCoffee {
+    0%, 100% { 
+        background: linear-gradient(to top, 
+            #6F4E37 0%, 
+            #6F4E37 20%,
+            transparent 20%
+        );
+    }
+    50% { 
+        background: linear-gradient(to top, 
+            #6F4E37 0%, 
+            #6F4E37 75%,
+            transparent 75%
+        );
+    }
+}
+
+@keyframes steam {
+    0%, 100% { 
+        opacity: 0; 
+        transform: translateY(0) scaleX(1);
+    }
+    50% { 
+        opacity: 1; 
+        transform: translateY(-8px) scaleX(1.2);
+    }
+}
+

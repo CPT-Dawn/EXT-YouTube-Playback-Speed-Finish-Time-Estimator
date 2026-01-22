@@ -12,8 +12,29 @@
   const DEBUG = true; // Set to true for debugging
 
 
+
   let lastTimeState = { h: null, m: null, s: null, ampm: null }; // Track flip clock state
   let customTargetActive = { video: false, chapter: false, playlist: false }; // Track custom target interaction
+
+  // Ad Detection & Card Transition State
+  let isCurrentlyShowingAd = false;
+  let adCheckInterval = null;
+  let messageRotationInterval = null;
+  let currentMessageIndex = 0;
+  let isTransitioning = false; // Lock to prevent overlapping transitions
+  let adDebounceTimer = null; // Debounce rapid state changes
+  let consecutiveAdDetections = 0; // Counter for reliable detection
+  
+  const adMessages = [
+    "Perfect time for a stretch! 🧘",
+    "Ads keep the lights on 💡",
+    "Your video will be right back 🎬",
+    "Patience is a virtue... ⏳",
+    "Grabbing some popcorn 🍿",
+    "Almost there... hang tight! 🚀"
+  ];
+
+
 
   // --- 1. UTILITIES ---
 
@@ -53,6 +74,38 @@
       console.log('[YT Time Manager]', ...args);
     }
   }
+
+  function isAdPlaying() {
+    try {
+      // Method 1: Check for ad overlay
+      const adOverlay = document.querySelector('.ytp-ad-player-overlay');
+      if (adOverlay && adOverlay.offsetParent !== null) return true;
+      
+      // Method 2: Check video container class
+      const playerContainer = document.querySelector('.html5-video-player');
+      if (playerContainer?.classList.contains('ad-showing')) return true;
+      if (playerContainer?.classList.contains('ad-interrupting')) return true;
+      
+      // Method 3: Check for ad module
+      const adModule = document.querySelector('.ytp-ad-module');
+      if (adModule && adModule.offsetParent !== null) return true;
+      
+      // Method 4: Check for skip button or ad text
+      const skipButton = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
+      const adText = document.querySelector('.ytp-ad-text');
+      if (skipButton || adText) return true;
+      
+      // Method 5: Check for video ad UI left controls
+      const videoAdUi = document.querySelector('.ytp-ad-player-overlay-instream-info');
+      if (videoAdUi) return true;
+      
+      return false;
+    } catch (e) {
+      debugLog('Error in isAdPlaying:', e);
+      return false;
+    }
+  }
+
 
   // --- 1.5 SETTINGS ---
 
@@ -871,6 +924,296 @@
     }
   }
 
+  // --- 3.7 AD DETECTION & CARD TRANSITIONS ---
+
+  function startAdMonitoring() {
+    if (adCheckInterval) return; // Already monitoring
+    
+    debugLog('Starting ad monitoring');
+    
+    adCheckInterval = setInterval(() => {
+      try {
+        const adPlaying = isAdPlaying();
+        
+        // Count consecutive detections for reliability
+        if (adPlaying) {
+          consecutiveAdDetections++;
+        } else {
+          consecutiveAdDetections = 0;
+        }
+        
+        // Require 2 consecutive detections to confirm ad state (prevents false positives)
+        const confirmedAdState = consecutiveAdDetections >= 2;
+        const confirmedNormalState = !adPlaying && consecutiveAdDetections === 0;
+        
+        // Only transition if state actually changed AND it's confirmed
+        if ((confirmedAdState && !isCurrentlyShowingAd) || (confirmedNormalState && isCurrentlyShowingAd)) {
+          // Debounce rapid changes
+          if (adDebounceTimer) {
+            clearTimeout(adDebounceTimer);
+          }
+          
+          adDebounceTimer = setTimeout(() => {
+            const newState = confirmedAdState;
+            if (newState !== isCurrentlyShowingAd && !isTransitioning) {
+              debugLog('Ad state changed (confirmed):', newState ? 'ad playing' : 'ad ended');
+              isCurrentlyShowingAd = newState;
+              transitionUIState(newState ? 'ad' : 'normal');
+            }
+          }, 300); // 300ms debounce
+        }
+      } catch (error) {
+        debugLog('Error in ad monitoring:', error);
+      }
+    }, 500);
+  }
+
+  function stopAdMonitoring() {
+    if (adCheckInterval) {
+      clearInterval(adCheckInterval);
+      adCheckInterval = null;
+    }
+    if (messageRotationInterval) {
+      clearInterval(messageRotationInterval);
+      messageRotationInterval = null;
+    }
+    if (adDebounceTimer) {
+      clearTimeout(adDebounceTimer);
+      adDebounceTimer = null;
+    }
+    consecutiveAdDetections = 0;
+  }
+
+  function transitionUIState(newState) {
+    // Prevent overlapping transitions
+    if (isTransitioning) {
+      debugLog('Transition already in progress, skipping');
+      return;
+    }
+    
+    const container = document.getElementById('yt-time-manager-container');
+    if (!container) {
+      debugLog('Container not found, skipping transition');
+      return;
+    }
+    
+    try {
+      isTransitioning = true;
+      debugLog('Starting transition to:', newState);
+      
+      // Pause normal updates during transition
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+      }
+      
+      if (newState === 'ad') {
+        hideNormalCards(() => {
+          if (isTransitioning) { // Double-check we haven't been cancelled
+            showAdCard();
+            isTransitioning = false;
+          }
+        });
+      } else if (newState === 'normal') {
+        hideAdCard(() => {
+          if (isTransitioning) { // Double-check we haven't been cancelled
+            showNormalCards();
+            isTransitioning = false;
+          }
+        });
+      } else {
+        isTransitioning = false;
+      }
+    } catch (error) {
+      debugLog('Error during transition:', error);
+      isTransitioning = false;
+      
+      // Try to recover: restart updates
+      const video = document.querySelector('video');
+      if (video && !updateInterval) {
+        updateInterval = setInterval(() => updateUI(video), 100);
+      }
+    }
+  }
+
+  function hideNormalCards(callback) {
+    try {
+      const videoSection = document.getElementById('dt-video-section');
+      const chapterSection = document.getElementById('dt-chapter-section');
+      const playlistSection = document.getElementById('dt-playlist-section');
+      
+      const sections = [videoSection, chapterSection, playlistSection].filter(s => s);
+      
+      if (sections.length === 0) {
+        debugLog('No sections to hide');
+        callback();
+        return;
+      }
+      
+      debugLog('Hiding', sections.length, 'sections');
+      
+      sections.forEach((section, index) => {
+        section.classList.add('dt-hiding');
+        section.style.animationDelay = `${index * 0.05}s`;
+      });
+      
+      // Wait for animation
+      setTimeout(() => {
+        sections.forEach(section => {
+          section.classList.remove('dt-hiding');
+          section.style.display = 'none';
+          section.style.animationDelay = '';
+        });
+        debugLog('Sections hidden');
+        callback();
+      }, 300 + (sections.length * 50));
+    } catch (error) {
+      debugLog('Error hiding normal cards:', error);
+      callback(); // Always call callback to prevent hanging
+    }
+  }
+
+  function hideAdCard(callback) {
+    try {
+      const adCard = document.querySelector('.dt-ad-card');
+      if (!adCard) {
+        debugLog('No ad card to hide');
+        callback();
+        return;
+      }
+      
+      debugLog('Hiding ad card');
+      
+      // Stop message rotation
+      if (messageRotationInterval) {
+        clearInterval(messageRotationInterval);
+        messageRotationInterval = null;
+      }
+      
+      adCard.classList.add('dt-hiding');
+      
+      setTimeout(() => {
+        if (adCard.parentNode) {
+          adCard.remove();
+        }
+        debugLog('Ad card removed');
+        callback();
+      }, 300);
+    } catch (error) {
+      debugLog('Error hiding ad card:', error);
+      callback();
+    }
+  }
+
+  function showNormalCards() {
+    try {
+      const videoSection = document.getElementById('dt-video-section');
+      const chapterSection = document.getElementById('dt-chapter-section');
+      const playlistSection = document.getElementById('dt-playlist-section');
+      
+      const sections = [videoSection, chapterSection, playlistSection].filter(s => s);
+      
+      if (sections.length === 0) {
+        debugLog('No sections to show');
+        return;
+      }
+      
+      debugLog('Showing', sections.length, 'sections');
+      
+      // Show and animate sections
+      sections.forEach((section, index) => {
+        section.style.display = '';
+        section.classList.remove('dt-hiding');
+        section.classList.add('dt-visible');
+        section.style.animationDelay = `${index * 0.08}s`;
+      });
+      
+      // Resume normal updates after transition
+      setTimeout(() => {
+        const video = document.querySelector('video');
+        if (video) {
+          if (updateInterval) {
+            clearInterval(updateInterval);
+          }
+          updateInterval = setInterval(() => updateUI(video), 100);
+          updateUI(video);
+          debugLog('Updates resumed');
+        }
+        
+        // Cleanup animation classes
+        sections.forEach(section => {
+          section.classList.remove('dt-visible');
+          section.style.animationDelay = '';
+        });
+      }, 400 + (sections.length * 80));
+    } catch (error) {
+      debugLog('Error showing normal cards:', error);
+      
+      // Emergency recovery: just restart updates
+      const video = document.querySelector('video');
+      if (video && !updateInterval) {
+        updateInterval = setInterval(() => updateUI(video), 100);
+      }
+    }
+  }
+
+  function showAdCard() {
+    const container = document.getElementById('yt-time-manager-container');
+    if (!container) return;
+    
+    const adCard = createAdCard();
+    
+    // Insert after header (first child is header)
+    const header = container.firstElementChild;
+    if (header) {
+      header.after(adCard);
+    } else {
+      container.appendChild(adCard);
+    }
+    
+    // Trigger animation
+    setTimeout(() => adCard.classList.add('dt-visible'), 10);
+    
+    // Start message rotation
+    messageRotationInterval = setInterval(rotateAdMessage, 3000);
+  }
+
+  function createAdCard() {
+    const card = document.createElement('div');
+    card.className = 'dt-section-card dt-ad-card';
+    card.innerHTML = `
+      <div class="dt-ad-content">
+        <div class="dt-coffee-animation">
+          <div class="dt-steam">
+            <span class="dt-steam-line"></span>
+            <span class="dt-steam-line"></span>
+            <span class="dt-steam-line"></span>
+          </div>
+          <div class="dt-cup-body">
+            <div class="dt-cup-handle"></div>
+          </div>
+        </div>
+        <h3 class="dt-ad-title">Ad Break</h3>
+        <p id="dt-ad-message" class="dt-ad-message">${adMessages[currentMessageIndex]}</p>
+        <div class="dt-ad-hint">Your time tracking will resume shortly</div>
+      </div>
+    `;
+    return card;
+  }
+
+
+  function rotateAdMessage() {
+    currentMessageIndex = (currentMessageIndex + 1) % adMessages.length;
+    const messageEl = document.getElementById('dt-ad-message');
+    if (messageEl) {
+      messageEl.style.opacity = '0';
+      setTimeout(() => {
+        messageEl.textContent = adMessages[currentMessageIndex];
+        messageEl.style.opacity = '1';
+      }, 300);
+    }
+  }
+
   // --- 4. INJECTION LOGIC ---
 
   /**
@@ -1088,6 +1431,9 @@
     updateInterval = setInterval(() => updateUI(video), 100);
     updateUI(video);
     
+    // Start ad monitoring
+    startAdMonitoring();
+    
     debugLog('UI injected successfully');
     return true;
   }
@@ -1205,8 +1551,14 @@
       updateInterval = null;
     }
     
+    // Stop ad monitoring
+    stopAdMonitoring();
+    
     // Reset state
     injected = false;
+    isCurrentlyShowingAd = false;
+    isTransitioning = false;
+    consecutiveAdDetections = 0;
     
     if (force) {
       // Force mode: reset everything including video tracking
