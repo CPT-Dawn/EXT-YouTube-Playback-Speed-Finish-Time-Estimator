@@ -926,7 +926,6 @@
 
     // 1. Update Header
     document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
-    document.getElementById('dt-speed-val').textContent = playbackRate.toFixed(2);
     // document.getElementById('dt-current-clock').textContent = new Date().toLocaleTimeString([], { hour12: !is24HourMode });
     updateFlipClock(new Date());
 
