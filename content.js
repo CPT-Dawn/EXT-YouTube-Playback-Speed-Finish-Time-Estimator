@@ -25,6 +25,11 @@
   let adDebounceTimer = null; // Debounce rapid state changes
   let consecutiveAdDetections = 0; // Counter for reliable detection
   
+  // Card Visibility Settings
+  let showVideoCard = true;
+  let showChapterCard = true;
+  let showPlaylistCard = true;
+  
   const adMessages = [
     "Perfect time for a stretch! 🧘",
     "Ads keep the lights on 💡",
@@ -111,20 +116,36 @@
 
   async function loadSettings() {
     try {
-        const result = await chrome.storage.local.get(['is24HourMode']);
-        if (result.is24HourMode !== undefined) {
-            is24HourMode = result.is24HourMode;
-        }
+      const result = await chrome.storage.local.get([
+        'is24HourMode',
+        'showVideoCard',
+        'showChapterCard',
+        'showPlaylistCard'
+      ]);
+      
+      if (result.is24HourMode !== undefined) {
+        is24HourMode = result.is24HourMode;
+      }
+      
+      // Load card visibility settings (default to true)
+      showVideoCard = result.showVideoCard !== false;
+      showChapterCard = result.showChapterCard !== false;
+      showPlaylistCard = result.showPlaylistCard !== false;
     } catch (e) {
-        console.error("Failed to load settings:", e);
+      console.error("Failed to load settings:", e);
     }
   }
 
   function saveSettings() {
     try {
-        chrome.storage.local.set({ is24HourMode });
+      chrome.storage.local.set({ 
+        is24HourMode,
+        showVideoCard,
+        showChapterCard,
+        showPlaylistCard
+      });
     } catch (e) {
-        console.error("Failed to save settings:", e);
+      console.error("Failed to save settings:", e);
     }
   }
 
@@ -398,23 +419,64 @@
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsPanelEl.classList.toggle('hidden');
+            
+            // Expand container to accommodate settings panel
+            if (!settingsPanelEl.classList.contains('hidden')) {
+                container.classList.add('dt-settings-open');
+            } else {
+                container.classList.remove('dt-settings-open');
+            }
         });
 
         // Close settings when clicking outside
         document.addEventListener('click', (e) => {
             if (!settingsPanelEl.contains(e.target) && !settingsBtn.contains(e.target)) {
                 settingsPanelEl.classList.add('hidden');
+                container.classList.remove('dt-settings-open');
             }
         });
     }
 
     if(toggle24h) {
+        toggle24h.checked = is24HourMode; // Set initial state
         toggle24h.addEventListener('change', (e) => {
             is24HourMode = e.target.checked;
             saveSettings();
             const video = document.querySelector('video');
             if (video) updateUI(video);
         });
+    }
+
+    // Card visibility toggles
+    const toggleVideoCard = container.querySelector('#dt-toggle-video-card');
+    const toggleChapterCard = container.querySelector('#dt-toggle-chapter-card');
+    const togglePlaylistCard = container.querySelector('#dt-toggle-playlist-card');
+
+    if (toggleVideoCard) {
+      toggleVideoCard.checked = showVideoCard;
+      toggleVideoCard.addEventListener('change', (e) => {
+        showVideoCard = e.target.checked;
+        saveSettings();
+        updateCardVisibility();
+      });
+    }
+
+    if (toggleChapterCard) {
+      toggleChapterCard.checked = showChapterCard;
+      toggleChapterCard.addEventListener('change', (e) => {
+        showChapterCard = e.target.checked;
+        saveSettings();
+        updateCardVisibility();
+      });
+    }
+
+    if (togglePlaylistCard) {
+      togglePlaylistCard.checked = showPlaylistCard;
+      togglePlaylistCard.addEventListener('change', (e) => {
+        showPlaylistCard = e.target.checked;
+        saveSettings();
+        updateCardVisibility();
+      });
     }
 
     // Custom Target Listeners
@@ -1214,6 +1276,41 @@
     }
   }
 
+  // --- 3.8 CARD VISIBILITY MANAGEMENT ---
+
+  function updateCardVisibility() {
+    const videoSection = document.getElementById('dt-video-section');
+    const chapterSection = document.getElementById('dt-chapter-section');
+    const playlistSection = document.getElementById('dt-playlist-section');
+    
+    if (videoSection) {
+      videoSection.style.display = showVideoCard ? '' : 'none';
+    }
+    
+    if (chapterSection) {
+      chapterSection.style.display = showChapterCard ? '' : 'none';
+    }
+    
+    if (playlistSection) {
+      playlistSection.style.display = showPlaylistCard ? '' : 'none';
+    }
+  }
+
+  function applyCardVisibility(section, shouldShow, userSetting) {
+    // Only show if BOTH conditions are met:
+    // 1. Content exists (shouldShow = true)
+    // 2. User wants it shown (userSetting = true)
+    if (section) {
+      if (shouldShow && userSetting) {
+        section.classList.remove('hidden');
+        section.style.display = '';
+      } else {
+        section.classList.add('hidden');
+        section.style.display = 'none';
+      }
+    }
+  }
+
   // --- 4. INJECTION LOGIC ---
 
   /**
@@ -1433,6 +1530,9 @@
     
     // Start ad monitoring
     startAdMonitoring();
+    
+    // Apply card visibility settings
+    updateCardVisibility();
     
     debugLog('UI injected successfully');
     return true;

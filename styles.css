@@ -18,20 +18,27 @@
 #yt-time-manager-container {
   font-family: var(--dt-font-main);
   background: rgba(17, 17, 17, 0.11);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: var(--dt-radius);
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: var(--dt-text-main);
   display: flex;
   flex-direction: column;
   gap: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   position: relative; /* Anchor for absolute settings panel */
   user-select: none; /* Disable text selection */
   -webkit-user-select: none;
+  min-height: 200px;
+  transition: min-height 0.3s ease;
+}
+
+/* Expand container when settings panel is open */
+#yt-time-manager-container.dt-settings-open {
+  min-height: 430px; /* Accommodate settings panel */
 }
 
 input, textarea {
@@ -720,15 +727,13 @@ input, textarea {
     left: 16px;
     right: 16px;
     width: auto; /* Reset fixed width */
-    max-height: calc(100% - 100px); /* Constrain to container height (top offset + bottom padding) */
-    overflow-y: auto; /* Scroll if content exceeds max-height */
     
     background: rgba(33, 33, 33, 0.98); /* High opacity overlay */
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--dt-radius);
     padding: 16px;
-    z-index: 100;
+    z-index: 999999; /* Very high to stay above all YouTube elements */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
@@ -741,6 +746,43 @@ input, textarea {
     align-items: center;
     font-size: 14px;
     color: var(--dt-text-main);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dt-setting-row:last-child {
+    border-bottom: none;
+}
+
+.dt-setting-row >span {
+    font-size: 14px;
+    color: var(--dt-text-main);
+}
+
+.dt-settings-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--dt-text-main);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+}
+
+.dt-settings-section {
+    margin-bottom: 20px;
+}
+
+.dt-settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.dt-settings-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dt-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
 /* Toggle Switch */
