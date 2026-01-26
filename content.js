@@ -30,6 +30,9 @@
   let showChapterCard = true;
   let showPlaylistCard = true;
   
+  // Theme Settings
+  let useSolidBackground = false; // Default to glassmorphism theme
+  
   const adMessages = [
     "Perfect time for a stretch! 🧘",
     "Ads keep the lights on 💡",
@@ -120,7 +123,8 @@
         'is24HourMode',
         'showVideoCard',
         'showChapterCard',
-        'showPlaylistCard'
+        'showPlaylistCard',
+        'useSolidBackground'
       ]);
       
       if (result.is24HourMode !== undefined) {
@@ -131,6 +135,9 @@
       showVideoCard = result.showVideoCard !== false;
       showChapterCard = result.showChapterCard !== false;
       showPlaylistCard = result.showPlaylistCard !== false;
+      
+      // Load theme setting (default to false - glassmorphism)
+      useSolidBackground = result.useSolidBackground === true;
     } catch (e) {
       console.error("Failed to load settings:", e);
     }
@@ -142,7 +149,8 @@
         is24HourMode,
         showVideoCard,
         showChapterCard,
-        showPlaylistCard
+        showPlaylistCard,
+        useSolidBackground
       });
     } catch (e) {
       console.error("Failed to save settings:", e);
@@ -476,6 +484,17 @@
         showPlaylistCard = e.target.checked;
         saveSettings();
         updateCardVisibility();
+      });
+    }
+
+    // Theme toggle
+    const toggleSolidBg = container.querySelector('#dt-toggle-solid-bg');
+    if (toggleSolidBg) {
+      toggleSolidBg.checked = useSolidBackground;
+      toggleSolidBg.addEventListener('change', (e) => {
+        useSolidBackground = e.target.checked;
+        saveSettings();
+        applyTheme();
       });
     }
 
@@ -1329,6 +1348,17 @@
     }
   }
 
+  function applyTheme() {
+    const container = document.getElementById('yt-time-manager-container');
+    if (container) {
+      if (useSolidBackground) {
+        container.classList.add('dt-solid-bg');
+      } else {
+        container.classList.remove('dt-solid-bg');
+      }
+    }
+  }
+
   // --- 4. INJECTION LOGIC ---
 
   /**
@@ -1551,6 +1581,9 @@
     
     // Apply card visibility settings
     updateCardVisibility();
+    
+    // Apply theme
+    applyTheme();
     
     debugLog('UI injected successfully');
     return true;

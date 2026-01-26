@@ -57,6 +57,14 @@
   padding: 16px; /* Restore normal padding when settings open */
 }
 
+/* Solid Background Theme */
+#yt-time-manager-container.dt-solid-bg {
+  background: #0f0f0f; /* YouTube black */
+  backdrop-filter: none; /* Remove blur effect */
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 input, textarea {
     user-select: text;
     -webkit-user-select: text;
