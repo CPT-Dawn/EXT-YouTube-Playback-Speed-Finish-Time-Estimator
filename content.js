@@ -984,6 +984,9 @@
     } else {
         playlistSection.classList.add('hidden');
     }
+    
+    // Check and apply compact mode if all cards are hidden
+    updateCardVisibility();
   }
 
   // --- 3.7 AD DETECTION & CARD TRANSITIONS ---
@@ -1282,6 +1285,7 @@
     const videoSection = document.getElementById('dt-video-section');
     const chapterSection = document.getElementById('dt-chapter-section');
     const playlistSection = document.getElementById('dt-playlist-section');
+    const container = document.getElementById('yt-time-manager-container');
     
     if (videoSection) {
       videoSection.style.display = showVideoCard ? '' : 'none';
@@ -1293,6 +1297,20 @@
     
     if (playlistSection) {
       playlistSection.style.display = showPlaylistCard ? '' : 'none';
+    }
+    
+    // Check if all cards are hidden (either by user setting or by content availability)
+    const videoHidden = !videoSection || videoSection.style.display === 'none' || videoSection.classList.contains('hidden');
+    const chapterHidden = !chapterSection || chapterSection.style.display === 'none' || chapterSection.classList.contains('hidden');
+    const playlistHidden = !playlistSection || playlistSection.style.display === 'none' || playlistSection.classList.contains('hidden');
+    
+    // Apply compact mode if all cards are hidden
+    if (container) {
+      if (videoHidden && chapterHidden && playlistHidden) {
+        container.classList.add('dt-compact-mode');
+      } else {
+        container.classList.remove('dt-compact-mode');
+      }
     }
   }
 

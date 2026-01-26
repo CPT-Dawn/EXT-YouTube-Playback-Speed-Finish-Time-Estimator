@@ -41,6 +41,22 @@
   min-height: 430px; /* Accommodate settings panel */
 }
 
+/* Compact mode when all cards are hidden - only show header */
+#yt-time-manager-container.dt-compact-mode {
+  min-height: auto; /* Remove min-height */
+  padding: 12px 16px; /* Reduce vertical padding for tighter spacing */
+}
+
+#yt-time-manager-container.dt-compact-mode .dt-section-card {
+  display: none; /* Ensure all cards are hidden */
+}
+
+/* When settings are open in compact mode, still expand */
+#yt-time-manager-container.dt-compact-mode.dt-settings-open {
+  min-height: 430px; /* Accommodate settings panel even in compact mode */
+  padding: 16px; /* Restore normal padding when settings open */
+}
+
 input, textarea {
     user-select: text;
     -webkit-user-select: text;
@@ -52,7 +68,7 @@ input, textarea {
   display: grid;
   grid-template-columns: 1fr auto 1fr; /* Three columns: Left, Center, Right */
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   gap: 0; /* Gap not strictly needed with 1fr spacers, but can keep small if needed */
   height: 44px;
   position: relative;
