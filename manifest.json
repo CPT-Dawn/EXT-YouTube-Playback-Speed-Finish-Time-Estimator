@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "TurboWatch for YouTube",
+  "name": "Chrono: YouTube Speed Control & Time Tracker",
+  "short_name": "Chrono",
   "version": "2.0.0",
-  "description": "Track video time, control playback speed, and know exactly when you'll finish. Beautiful flip clock, chapter tracking, smart playlist management. Your YouTube productivity copilot.",
+  "description": "Control playback speed, track playlist duration, and estimate finish times with a beautiful dashboard. The ultimate productivity tool.",
   "author": "CPT-Dawn",
   "homepage_url": "https://github.com/CPT-Dawn/EXT-YouTube-Playback-Speed-Finish-Time-Estimator",
   
@@ -30,7 +31,7 @@
     }
   ],
   "action": {
-    "default_title": "TurboWatch for YouTube",
+    "default_title": "Chrono: YouTube Speed Control & Time Tracker",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
