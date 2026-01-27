@@ -1,8 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Time Manager",
+  "name": "TurboWatch for YouTube",
   "version": "2.0.0",
-  "description": "Advanced time management suite for YouTube: Remaining time, Finishes at, Playlist calc, and more.",
+  "description": "Track video time, control playback speed, and know exactly when you'll finish. Beautiful flip clock, chapter tracking, smart playlist management. Your YouTube productivity copilot.",
+  "author": "CPT-Dawn",
+  "homepage_url": "https://github.com/CPT-Dawn/EXT-YouTube-Playback-Speed-Finish-Time-Estimator",
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
   "permissions": ["scripting", "tabs", "storage"],
   "host_permissions": ["*://*.youtube.com/*"],
 
@@ -21,6 +30,11 @@
     }
   ],
   "action": {
-    "default_title": "YouTube Time Manager"
+    "default_title": "TurboWatch for YouTube",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   }
 }
