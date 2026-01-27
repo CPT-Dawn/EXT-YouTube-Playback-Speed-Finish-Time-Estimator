@@ -3,16 +3,16 @@
   "name": "Chrono: YouTube Speed Control & Time Tracker",
   "short_name": "Chrono",
   "version": "2.0.0",
-  "description": "Control playback speed, track playlist duration, and estimate finish times with a beautiful dashboard. The ultimate productivity tool.",
+  "description": "Control playback speed, track playlist duration, and estimate finish times with beautiful dashboard. The ultimate productivity tool.",
   "author": "CPT-Dawn",
   "homepage_url": "https://github.com/CPT-Dawn/EXT-YouTube-Playback-Speed-Finish-Time-Estimator",
-  
+
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  
+
   "permissions": ["scripting", "tabs", "storage"],
   "host_permissions": ["*://*.youtube.com/*"],
 
